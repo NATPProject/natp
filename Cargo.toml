@@ -1,0 +1,47 @@
+[workspace]
+members = [
+    "crates/natp-diagnostics",
+]
+resolver = "3"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+rust-version = "1.85"
+
+[workspace.dependencies]
+natp-diagnostics = { version = "0.1.0", path = "crates/natp-diagnostics" }
+natp-core = { version = "0.1.0", path = "crates/natp-core" }
+natp-kernel = { version = "0.1.0", path = "crates/natp-kernel" }
+natp-bounded = { version = "0.1.0", path = "crates/natp-bounded" }
+natp-smt = { version = "0.1.0", path = "crates/natp-smt" }
+natp-macros = { version = "0.1.0", path = "crates/natp-macros" }
+natp = { version = "0.1.0", path = "crates/natp" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_path_to_error = "0.1"
+tempfile = "3"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_docs = "deny"
+missing_debug_implementations = "warn"
+unreachable_pub = "warn"
+unused_must_use = "deny"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+todo = "deny"
+unimplemented = "deny"
+dbg_macro = "deny"
+exit = "deny"
+missing_errors_doc = "deny"
+missing_panics_doc = "deny"
+
+[profile.release]
+overflow-checks = true
+lto = "thin"
