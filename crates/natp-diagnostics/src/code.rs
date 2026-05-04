@@ -7,7 +7,14 @@ macro_rules! catalogue {
         pub enum Code {
             $(#[doc = $description] $name = $number,)+
         }
-
+        impl Code {
+            /// All registered diagnostics, in catalogue order.
+            pub const ALL: &'static [Self] = &[$(Self::$name,)+];
+            /// Short explanation of this diagnostic class.
+            pub const fn description(self) -> &'static str {
+                match self { $(Self::$name => $description,)+ }
+            }
+        }
     };
 }
 
