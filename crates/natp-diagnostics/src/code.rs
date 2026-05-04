@@ -1,3 +1,5 @@
+use std::fmt;
+
 macro_rules! catalogue {
     ($($name:ident = $number:literal => $description:literal),+ $(,)?) => {
         /// Stable diagnostic identities. Match variants instead of parsing display text.
@@ -61,4 +63,10 @@ catalogue! {
     DuplicateQuantifier = 8012 => "Quantified closure parameters repeat a name.",
     MacroQuantifierLimit = 8013 => "Macro exceeds the supported quantifier count.",
     ClaimSyntax = 8014 => "Claim body cannot be parsed as a symbolic expression.",
+}
+
+impl fmt::Display for Code {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(formatter, "NATP{:04}", *self as u16)
+    }
 }
