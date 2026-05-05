@@ -1,4 +1,5 @@
 use crate::Code;
+use std::fmt;
 
 /// A diagnostic code and message.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -25,5 +26,11 @@ impl Diagnostic {
     /// Primary explanation, without rendering labels.
     pub fn message(&self) -> &str {
         &self.message
+    }
+}
+
+impl fmt::Display for Diagnostic {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(formatter, "[{}] {}", self.code, self.message)
     }
 }
