@@ -42,6 +42,13 @@ impl Diagnostic {
         self.help.as_deref()
     }
 
+    /// Replace the code, retaining the message, location, and help text.
+    pub fn with_code(mut self, code: Code) -> Self {
+        self.code = code;
+
+        self
+    }
+
     /// Attach a field path or source location.
     pub fn at(mut self, location: impl Into<String>) -> Self {
         self.location = Some(location.into());
