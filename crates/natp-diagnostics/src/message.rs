@@ -55,6 +55,13 @@ impl Diagnostic {
 
         self
     }
+
+    /// Prefix the message with operation context, retaining the code, location, and help text.
+    pub fn context(mut self, operation: impl fmt::Display) -> Self {
+        self.message = format!("{operation}: {}", self.message);
+
+        self
+    }
 }
 
 impl fmt::Display for Diagnostic {
