@@ -65,6 +65,20 @@ catalogue! {
     ClaimSyntax = 8014 => "Claim body cannot be parsed as a symbolic expression.",
 }
 
+impl Code {
+    /// Whether this diagnostic rejects evidence rather than the expected theorem.
+    pub const fn is_certificate_rejection(self) -> bool {
+        matches!(
+            self,
+            Self::CertificateTheorem
+                | Self::CertificateNormalForm
+                | Self::CertificateTrace
+                | Self::CertificateAtoms
+                | Self::CertificateDeduction
+        )
+    }
+}
+
 impl fmt::Display for Code {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(formatter, "NATP{:04}", *self as u16)
