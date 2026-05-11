@@ -104,3 +104,37 @@ pub enum NatExpr {
     /// Mathematical addition, without machine-integer wrapping.
     Add(Box<NatExpr>, Box<NatExpr>),
 }
+
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(
+    tag = "op",
+    content = "args",
+    rename_all = "snake_case",
+    deny_unknown_fields
+)]
+/// A proposition in the restricted, typed finite-sequence language.
+#[must_use = "a symbolic proposition must be attached to a theorem"]
+pub enum Prop {
+    /// A constant proposition.
+    Bool(bool),
+    /// Extensional equality of two sequences with the same sort.
+    SeqEq(Expr, Expr),
+    /// Equality of same-sort elements.
+    ElemEq(ElemExpr, ElemExpr),
+    /// Equality of natural-number expressions.
+    NatEq(NatExpr, NatExpr),
+    /// Whether a sequence has zero length.
+    IsEmpty(Expr),
+    /// Whether an element occurs in a sequence.
+    Contains(Expr, ElemExpr),
+    /// Universal membership predicate; true on an empty sequence.
+    All(Expr, Box<Prop>),
+    /// Classical negation.
+    Not(Box<Prop>),
+    /// Conjunction.
+    And(Box<Prop>, Box<Prop>),
+    /// Disjunction.
+    Or(Box<Prop>, Box<Prop>),
+    /// Material implication.
+    Implies(Box<Prop>, Box<Prop>),
+}
