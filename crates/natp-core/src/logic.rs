@@ -138,3 +138,16 @@ pub enum Prop {
     /// Material implication.
     Implies(Box<Prop>, Box<Prop>),
 }
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
+/// The sequence lengths covered by a theorem's universal quantifiers.
+pub enum Scope {
+    /// Universal quantification over every finite sequence length.
+    Unbounded,
+    /// Restrict every sequence variable independently; scalars remain unrestricted.
+    Bounded {
+        /// Inclusive upper length bound; zero includes just the empty sequence.
+        max_len: usize,
+    },
+}
