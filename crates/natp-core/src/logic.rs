@@ -70,3 +70,20 @@ pub enum Expr {
     /// Reversal of a finite sequence.
     Reverse(Box<Expr>),
 }
+
+/// A scalar term; bound elements are meaningful only inside one `all` predicate.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(
+    tag = "op",
+    content = "args",
+    rename_all = "snake_case",
+    deny_unknown_fields
+)]
+pub enum ElemExpr {
+    /// A scalar variable indexed in the theorem's ordered quantifiers.
+    Var(usize),
+    /// A fixed literal, shared across all assignments.
+    Constant(Value),
+    /// The element bound by the enclosing all. Nested all is rejected.
+    Bound,
+}
