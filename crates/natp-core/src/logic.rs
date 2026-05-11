@@ -51,3 +51,22 @@ pub enum Domain {
     /// A single element of the given sort.
     Scalar(Element),
 }
+
+/// IDs index the theorem's ordered quantifier list; no implicit free variables.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(
+    tag = "op",
+    content = "args",
+    rename_all = "snake_case",
+    deny_unknown_fields
+)]
+pub enum Expr {
+    /// An empty sequence of an explicit element sort.
+    Empty(Element),
+    /// A sequence variable indexed in the theorem's ordered quantifiers.
+    Var(usize),
+    /// Concatenation in left-to-right order.
+    Append(Box<Expr>, Box<Expr>),
+    /// Reversal of a finite sequence.
+    Reverse(Box<Expr>),
+}
