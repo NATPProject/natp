@@ -87,3 +87,20 @@ pub enum ElemExpr {
     /// The element bound by the enclosing all. Nested all is rejected.
     Bound,
 }
+
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(
+    tag = "op",
+    content = "args",
+    rename_all = "snake_case",
+    deny_unknown_fields
+)]
+/// A natural-number expression evaluated without wrapping arithmetic.
+pub enum NatExpr {
+    /// The mathematical length of a sequence.
+    Length(Expr),
+    /// A nonnegative integer literal.
+    Constant(u64),
+    /// Mathematical addition, without machine-integer wrapping.
+    Add(Box<NatExpr>, Box<NatExpr>),
+}
