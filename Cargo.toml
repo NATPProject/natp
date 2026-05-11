@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "crates/natp-diagnostics",
+    "crates/natp-core",
 ]
 resolver = "3"
 

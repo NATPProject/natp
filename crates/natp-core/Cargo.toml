@@ -1,0 +1,17 @@
+[package]
+name = "natp-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Typed logic, validation, concrete semantics, errors, and evidence for NATP"
+
+[dependencies]
+natp-diagnostics.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+serde_path_to_error.workspace = true
+tempfile.workspace = true
+
+[lints]
+workspace = true
