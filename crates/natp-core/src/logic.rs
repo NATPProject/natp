@@ -1,4 +1,4 @@
-//! Typed theorem expressions and concrete values.
+//! Public wire representation. Construction is permissive; backends validate it.
 
 use serde::{Deserialize, Serialize};
 
@@ -150,4 +150,19 @@ pub enum Scope {
         /// Inclusive upper length bound; zero includes just the empty sequence.
         max_len: usize,
     },
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(
+    tag = "kind",
+    content = "value",
+    rename_all = "snake_case",
+    deny_unknown_fields
+)]
+/// One concrete quantified input for evaluating or replaying a theorem.
+pub enum Assignment {
+    /// The concrete contents of one sequence variable.
+    Sequence(Vec<Value>),
+    /// The concrete value of one scalar variable.
+    Scalar(Value),
 }
