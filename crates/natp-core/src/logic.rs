@@ -149,6 +149,13 @@ pub enum Prop {
 }
 
 impl Prop {
+    /// Construct logical equivalence using implications in both directions.
+    pub fn equals(self, rhs: impl Into<Self>) -> Self {
+        let rhs = rhs.into();
+
+        self.clone().implies(rhs.clone()).and(rhs.implies(self))
+    }
+
     /// Require both propositions to hold.
     pub fn and(self, rhs: Self) -> Self {
         Self::And(Box::new(self), Box::new(rhs))
