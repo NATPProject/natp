@@ -52,6 +52,15 @@ pub enum Domain {
     Scalar(Element),
 }
 
+/// Shape of a quantified domain, independent of its element sort.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum DomainKind {
+    /// A finite sequence of elements.
+    Sequence,
+    /// One element.
+    Scalar,
+}
+
 /// IDs index the theorem's ordered quantifier list; no implicit free variables.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(
@@ -137,6 +146,36 @@ pub enum Prop {
     Or(Box<Prop>, Box<Prop>),
     /// Material implication.
     Implies(Box<Prop>, Box<Prop>),
+}
+
+impl Prop {
+    /// Require both propositions to hold.
+    pub fn and(self, rhs: Self) -> Self {
+        Self::And(Box::new(self), Box::new(rhs))
+    }
+
+    /// Require at least one proposition to hold.
+    pub fn or(self, rhs: Self) -> Self {
+        Self::Or(Box::new(self), Box::new(rhs))
+    }
+
+    /// Require `rhs` whenever this proposition holds.
+    pub fn implies(self, rhs: Self) -> Self {
+        Self::Implies(Box::new(self), Box::new(rhs))
+    }
+}
+
+impl From<bool> for Prop {
+    fn from(value: bool) -> Self {
+        Self::Bool(value)
+    }
+}
+
+impl std::ops::Not for Prop {
+    type Output = Self;
+    fn not(self) -> Self {
+        Self::Not(Box::new(self))
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
