@@ -12,6 +12,19 @@ pub enum Element {
     Bool,
 }
 
+impl Element {
+    /// Every equality-only logical element sort.
+    pub const ALL: [Self; 2] = [Self::I32, Self::Bool];
+
+    /// Stable diagnostic and wire description of this element sort.
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::I32 => "i32",
+            Self::Bool => "bool",
+        }
+    }
+}
+
 /// A concrete element used for literals and counterexample replay.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(
@@ -59,6 +72,36 @@ pub enum DomainKind {
     Sequence,
     /// One element.
     Scalar,
+}
+
+impl DomainKind {
+    /// Every supported domain shape.
+    pub const ALL: [Self; 2] = [Self::Sequence, Self::Scalar];
+
+    /// Stable diagnostic description of this shape.
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Sequence => "sequence",
+            Self::Scalar => "scalar",
+        }
+    }
+}
+
+impl Domain {
+    /// Domain shape, independent of its element sort.
+    pub const fn kind(self) -> DomainKind {
+        match self {
+            Self::Sequence(_) => DomainKind::Sequence,
+            Self::Scalar(_) => DomainKind::Scalar,
+        }
+    }
+
+    /// Return the element sort, independent of whether the domain is a sequence.
+    pub fn element(self) -> Element {
+        match self {
+            Self::Sequence(e) | Self::Scalar(e) => e,
+        }
+    }
 }
 
 /// IDs index the theorem's ordered quantifier list; no implicit free variables.
