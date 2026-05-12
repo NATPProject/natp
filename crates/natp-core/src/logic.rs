@@ -25,6 +25,12 @@ impl Element {
     }
 }
 
+impl std::fmt::Display for Element {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(self.as_str())
+    }
+}
+
 /// A concrete element used for literals and counterexample replay.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(
@@ -100,6 +106,15 @@ impl Domain {
     pub fn element(self) -> Element {
         match self {
             Self::Sequence(e) | Self::Scalar(e) => e,
+        }
+    }
+}
+
+impl std::fmt::Display for Domain {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Sequence(element) => write!(formatter, "Seq<{element}>"),
+            Self::Scalar(element) => write!(formatter, "Elem<{element}>"),
         }
     }
 }
