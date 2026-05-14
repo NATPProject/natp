@@ -73,14 +73,43 @@ impl Error {
         }
     }
 
+    /// Associate a diagnostic with an error category.
+    pub fn from_diagnostic(kind: ErrorKind, diagnostic: Diagnostic) -> Self {
+        Self {
+            kind,
+            diagnostic,
+            source: None,
+        }
+    }
+
     /// Runtime error category, preserved through context wrappers.
     pub const fn kind(&self) -> ErrorKind {
         self.kind
     }
 
+    /// Structured message shared with the compiler and CLI.
+    pub fn diagnostic(&self) -> &Diagnostic {
+        &self.diagnostic
+    }
+
+    /// Diagnostic code, preserved when adding context.
+    pub const fn code(&self) -> Code {
+        self.diagnostic.code()
+    }
+
     /// Primary explanation without rendering labels.
     pub fn message(&self) -> &str {
         self.diagnostic.message()
+    }
+
+    /// Logical path or source position, when available.
+    pub fn location(&self) -> Option<&str> {
+        self.diagnostic.location()
+    }
+
+    /// Corrective action, when available.
+    pub fn help(&self) -> Option<&str> {
+        self.diagnostic.help()
     }
 }
 
