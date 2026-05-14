@@ -111,6 +111,30 @@ impl Error {
     pub fn help(&self) -> Option<&str> {
         self.diagnostic.help()
     }
+
+    /// Replace the diagnostic code.
+    #[must_use]
+    pub fn with_code(mut self, code: Code) -> Self {
+        self.diagnostic = self.diagnostic.with_code(code);
+
+        self
+    }
+
+    /// Attach the offending field or source position.
+    #[must_use]
+    pub fn at(mut self, location: impl Into<String>) -> Self {
+        self.diagnostic = self.diagnostic.at(location);
+
+        self
+    }
+
+    /// Attach a corrective action.
+    #[must_use]
+    pub fn with_help(mut self, help: impl Into<String>) -> Self {
+        self.diagnostic = self.diagnostic.with_help(help);
+
+        self
+    }
 }
 
 impl fmt::Display for Error {
