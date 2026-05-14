@@ -135,6 +135,16 @@ impl Error {
 
         self
     }
+
+    /// Add operation context while retaining this error as the source.
+    #[must_use]
+    pub fn context(self, operation: impl fmt::Display) -> Self {
+        Self {
+            kind: self.kind,
+            diagnostic: self.diagnostic.clone().context(operation),
+            source: Some(Box::new(self)),
+        }
+    }
 }
 
 impl fmt::Display for Error {
