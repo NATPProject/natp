@@ -164,6 +164,18 @@ impl error::Error for Error {
 impl From<io::Error> for Error {
     fn from(source: io::Error) -> Self {
         let mut error = Self::with_kind(ErrorKind::Io, source.to_string());
+        error = match source.kind() {
+            io::ErrorKind::NotFound => error.with_help(
+                "check that the path exists; for an external solver, supply its executable path",
+            ),
+            io::ErrorKind::PermissionDenied => error.with_help(
+                "check access permissions and whether another process has locked the file",
+            ),
+            io::ErrorKind::AlreadyExists => {
+                error.with_help("choose a new output path or directory")
+            }
+            _ => error,
+        };
 
         error.source = Some(Box::new(source));
 
