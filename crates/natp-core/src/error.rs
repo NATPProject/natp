@@ -1,7 +1,7 @@
 //! Error categories, diagnostics, and source chains.
 
 use natp_diagnostics::{Code, Diagnostic};
-use std::{error, fmt};
+use std::{error, fmt, io};
 
 /// Error categories for callers that do not parse diagnostic messages.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -158,5 +158,15 @@ impl error::Error for Error {
         self.source
             .as_deref()
             .map(|source| source as &dyn error::Error)
+    }
+}
+
+impl From<io::Error> for Error {
+    fn from(source: io::Error) -> Self {
+        let mut error = Self::with_kind(ErrorKind::Io, source.to_string());
+
+        error.source = Some(Box::new(source));
+
+        error
     }
 }
