@@ -187,6 +187,14 @@ impl From<serde_json::Error> for Error {
     fn from(source: serde_json::Error) -> Self {
         let mut error = Self::with_kind(ErrorKind::Serialization, source.to_string());
 
+        if source.line() > 0 {
+            error = error.at(format!(
+                "line {}, column {}",
+                source.line(),
+                source.column()
+            ));
+        }
+
         error.source = Some(Box::new(source));
 
         error
