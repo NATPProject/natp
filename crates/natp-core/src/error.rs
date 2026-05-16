@@ -185,7 +185,12 @@ impl From<io::Error> for Error {
 
 impl From<serde_json::Error> for Error {
     fn from(source: serde_json::Error) -> Self {
-        let mut error = Self::with_kind(ErrorKind::Serialization, source.to_string());
+        let mut error = Self::with_kind(ErrorKind::Serialization, source.to_string()).with_help(match source.classify() {
+            serde_json::error::Category::Eof => "complete the JSON document; check for missing values, quotes, and closing brackets",
+            serde_json::error::Category::Syntax => "correct the JSON syntax at the reported position; use double-quoted field names and no trailing commas",
+            serde_json::error::Category::Data => "match the expected field types and variant names",
+            serde_json::error::Category::Io => "check that the input can be read completely",
+        });
 
         if source.line() > 0 {
             error = error.at(format!(
