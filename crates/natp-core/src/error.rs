@@ -182,3 +182,13 @@ impl From<io::Error> for Error {
         error
     }
 }
+
+impl From<serde_json::Error> for Error {
+    fn from(source: serde_json::Error) -> Self {
+        let mut error = Self::with_kind(ErrorKind::Serialization, source.to_string());
+
+        error.source = Some(Box::new(source));
+
+        error
+    }
+}
