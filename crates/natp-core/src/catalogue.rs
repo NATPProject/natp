@@ -1,3 +1,86 @@
+//! Typed catalogues for stable trace identifiers and diagnostic paths.
+
+/// A trusted kernel rule with a stable certificate wire identifier.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TraceRule {
+    /// Empty sequence identity.
+    SequenceEmpty,
+    /// Canonical sequence variable.
+    SequenceVariable,
+    /// Concatenation associativity and identity.
+    SequenceAppend,
+    /// Reversal involution and anti-homomorphism.
+    SequenceReverse,
+    /// Sequence equality symmetry, reversal, and length congruence.
+    SequenceEquality,
+    /// Concatenation is empty exactly when all parts are empty.
+    SequenceEmptiness,
+    /// Length homomorphism and natural cancellation.
+    NaturalEquality,
+    /// Scalar equality reflexivity, symmetry, and literals.
+    ElementEquality,
+    /// Membership through emptiness, concatenation, and reversal.
+    Membership,
+    /// Universal membership and vacuity.
+    UniversalMembership,
+    /// Constant Boolean evaluation.
+    BooleanConstant,
+    /// Classical negation.
+    Negation,
+    /// Boolean connectives and material implication.
+    Connectives,
+    /// Truth under a partial valuation.
+    BooleanEvaluation,
+    /// Exhaustive classical Boolean cases.
+    ClassicalCases,
+    /// Unbounded universal introduction.
+    UniversalIntroduction,
+}
+
+impl TraceRule {
+    /// All kernel rules in declaration order.
+    pub const ALL: [Self; 16] = [
+        Self::SequenceEmpty,
+        Self::SequenceVariable,
+        Self::SequenceAppend,
+        Self::SequenceReverse,
+        Self::SequenceEquality,
+        Self::SequenceEmptiness,
+        Self::NaturalEquality,
+        Self::ElementEquality,
+        Self::Membership,
+        Self::UniversalMembership,
+        Self::BooleanConstant,
+        Self::Negation,
+        Self::Connectives,
+        Self::BooleanEvaluation,
+        Self::ClassicalCases,
+        Self::UniversalIntroduction,
+    ];
+
+    /// Stable identifier used by JSON certificates and trace rendering.
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::SequenceEmpty => "S1.Empty",
+            Self::SequenceVariable => "S2.Variable",
+            Self::SequenceAppend => "S3.AppendAssociativityIdentity",
+            Self::SequenceReverse => "S4.ReverseInvolutionAntiHomomorphism",
+            Self::SequenceEquality => "S5.EqualitySymmetryReverseInjectivityLengthCongruence",
+            Self::SequenceEmptiness => "S6.AppendEmptyIffAllPartsEmpty",
+            Self::NaturalEquality => "N1.LengthHomomorphismNaturalCancellation",
+            Self::ElementEquality => "E1.ElementEqualityReflexivitySymmetryConstants",
+            Self::Membership => "P1.MembershipEmptyAppendReverse",
+            Self::UniversalMembership => "P2.AllEmptyAppendReverseVacuity",
+            Self::BooleanConstant => "L1.BooleanConstant",
+            Self::Negation => "L2.Negation",
+            Self::Connectives => "L3.ConnectivesImplicationDefinition",
+            Self::BooleanEvaluation => "L4.BooleanEvaluation",
+            Self::ClassicalCases => "L5.ClassicalCases",
+            Self::UniversalIntroduction => "K1.UniversalIntroduction",
+        }
+    }
+}
+
 /// Named representation fields that may appear in validation diagnostics.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum DiagnosticField {
