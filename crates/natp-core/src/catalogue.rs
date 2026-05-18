@@ -96,3 +96,28 @@ impl DiagnosticField {
         format!("{}[{index}]", self.as_str())
     }
 }
+
+/// Typed edges used while traversing the diagnostic path of a syntax tree.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SyntaxEdge {
+    /// The single argument of a unary syntax node.
+    Unary,
+    /// The first argument of a binary syntax node.
+    First,
+    /// The second argument of a binary syntax node.
+    Second,
+}
+
+impl SyntaxEdge {
+    /// Every syntax traversal edge.
+    pub const ALL: [Self; 3] = [Self::Unary, Self::First, Self::Second];
+
+    /// Stable diagnostic suffix for this syntax edge.
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Unary => ".args",
+            Self::First => ".args[0]",
+            Self::Second => ".args[1]",
+        }
+    }
+}

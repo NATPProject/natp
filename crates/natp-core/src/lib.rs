@@ -5,7 +5,7 @@ mod error;
 pub mod limits;
 mod logic;
 
-pub use catalogue::DiagnosticField;
+pub use catalogue::{DiagnosticField, SyntaxEdge};
 pub use error::{Error, ErrorKind};
 pub use logic::*;
 pub use natp_diagnostics::{Code, Diagnostic, diagnostic};
