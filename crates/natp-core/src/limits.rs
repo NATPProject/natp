@@ -1,4 +1,4 @@
-//! Shared resource budgets.
+//! Shared resource budgets and wire versions.
 /// Resource limits for theorem validation, certificate checking, and process execution.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ResourceLimit {
@@ -50,3 +50,25 @@ impl ResourceLimit {
         }
     }
 }
+
+/// Supported theorem wire formats. Version changes require an explicit migration.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SchemaVersion {
+    /// Current typed sequence, scalar, and natural representation.
+    V2,
+}
+
+impl SchemaVersion {
+    /// Every supported schema version.
+    pub const ALL: [Self; 1] = [Self::V2];
+
+    /// Stable numeric wire identifier.
+    pub const fn number(self) -> u32 {
+        match self {
+            Self::V2 => 2,
+        }
+    }
+}
+
+/// Version of the serialised theorem format.
+pub const SCHEMA_VERSION: u32 = SchemaVersion::V2.number();
