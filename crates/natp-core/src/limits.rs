@@ -1,4 +1,5 @@
-//! Shared resource budgets and wire versions.
+//! Shared resource limits.
+
 /// Resource limits for theorem validation, certificate checking, and process execution.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ResourceLimit {
@@ -72,3 +73,15 @@ impl SchemaVersion {
 
 /// Version of the serialised theorem format.
 pub const SCHEMA_VERSION: u32 = SchemaVersion::V2.number();
+/// Maximum UTF-8 byte length of a nonempty theorem name.
+pub const MAX_NAME_BYTES: usize = ResourceLimit::NameBytes.value();
+/// Maximum number of universally quantified sequence or scalar variables.
+pub const MAX_VARIABLES: usize = ResourceLimit::Variables.value();
+/// Largest permitted bound for each sequence in finite verification.
+pub const MAX_BOUNDED_LENGTH: usize = ResourceLimit::BoundedLength.value();
+/// Maximum recursive syntax depth accepted at every backend boundary.
+pub const MAX_SYNTAX_DEPTH: usize = ResourceLimit::SyntaxDepth.value();
+/// Maximum total syntax nodes in one theorem.
+pub const MAX_SYNTAX_NODES: usize = ResourceLimit::SyntaxNodes.value();
+/// Maximum serialised theorem size, enforced before JSON decoding.
+pub const MAX_THEOREM_BYTES: usize = ResourceLimit::TheoremBytes.value();
