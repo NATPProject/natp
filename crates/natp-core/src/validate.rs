@@ -1,7 +1,9 @@
 //! Validate theorem structure and report the field containing an error.
 
 use crate::{Code, DiagnosticField, DomainKind, catalogue::SyntaxEdge};
-use crate::{Domain, ElemExpr, Element, Error, ErrorKind, Expr, Prop, Scope, Theorem, limits};
+use crate::{
+    Domain, ElemExpr, Element, Error, ErrorKind, Expr, NatExpr, Prop, Scope, Theorem, limits,
+};
 
 impl Theorem {
     /// Check schema, quantifiers, scope, sorts, binders, and syntax budgets.
@@ -237,6 +239,26 @@ impl<'left> Validator<'left> {
         }
     }
 
+    fn validate_natural(&mut self, expression: &NatExpr, depth: usize) -> Result<(), Error> {
+        self.check_syntax_budget(depth)?;
+
+        match expression {
+            NatExpr::Constant(_) => Ok(()),
+            NatExpr::Length(sequence) => self.at_path(SyntaxEdge::Unary, |validator| {
+                validator.validate_sequence(sequence, depth + 1).map(|_| ())
+            }),
+            NatExpr::Add(left, right) => {
+                self.at_path(SyntaxEdge::First, |validator| {
+                    validator.validate_natural(left, depth + 1)
+                })?;
+
+                self.at_path(SyntaxEdge::Second, |validator| {
+                    validator.validate_natural(right, depth + 1)
+                })
+            }
+        }
+    }
+
     fn validate_proposition(
         &mut self,
         proposition: &Prop,
@@ -267,6 +289,15 @@ impl<'left> Validator<'left> {
                     let right = validator.validate_element(right, bound_element, depth + 1)?;
 
                     validator.require_same_element_sort(left, right)
+                })
+            }
+            Prop::NatEq(left, right) => {
+                self.at_path(SyntaxEdge::First, |validator| {
+                    validator.validate_natural(left, depth + 1)
+                })?;
+
+                self.at_path(SyntaxEdge::Second, |validator| {
+                    validator.validate_natural(right, depth + 1)
                 })
             }
             Prop::Not(predicate) => self.at_path(SyntaxEdge::Unary, |validator| {
