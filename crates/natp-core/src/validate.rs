@@ -300,6 +300,20 @@ impl<'left> Validator<'left> {
                     validator.validate_natural(right, depth + 1)
                 })
             }
+            Prop::IsEmpty(sequence) => self.at_path(SyntaxEdge::Unary, |validator| {
+                validator.validate_sequence(sequence, depth + 1).map(|_| ())
+            }),
+            Prop::Contains(sequence, element) => {
+                let left = self.at_path(SyntaxEdge::First, |validator| {
+                    validator.validate_sequence(sequence, depth + 1)
+                })?;
+
+                self.at_path(SyntaxEdge::Second, |validator| {
+                    let right = validator.validate_element(element, bound_element, depth + 1)?;
+
+                    validator.require_same_element_sort(left, right)
+                })
+            }
             Prop::Not(predicate) => self.at_path(SyntaxEdge::Unary, |validator| {
                 validator.validate_proposition(predicate, bound_element, depth + 1)
             }),
