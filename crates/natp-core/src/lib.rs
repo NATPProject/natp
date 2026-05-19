@@ -4,8 +4,10 @@ mod catalogue;
 mod error;
 pub mod limits;
 mod logic;
+mod theorem;
 
 pub use catalogue::{DiagnosticField, SyntaxEdge, TraceRule};
 pub use error::{Error, ErrorKind};
 pub use logic::*;
 pub use natp_diagnostics::{Code, Diagnostic, diagnostic};
+pub use theorem::Theorem;

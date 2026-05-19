@@ -130,7 +130,7 @@ impl std::fmt::Display for Domain {
 pub enum Expr {
     /// An empty sequence of an explicit element sort.
     Empty(Element),
-    /// A sequence variable indexed in the theorem's ordered quantifiers.
+    /// A sequence variable indexed in [`crate::Theorem::variables`].
     Var(usize),
     /// Concatenation in left-to-right order.
     Append(Box<Expr>, Box<Expr>),
@@ -147,7 +147,7 @@ pub enum Expr {
     deny_unknown_fields
 )]
 pub enum ElemExpr {
-    /// A scalar variable indexed in the theorem's ordered quantifiers.
+    /// A scalar variable indexed in [`crate::Theorem::variables`].
     Var(usize),
     /// A fixed literal, shared across all assignments.
     Constant(Value),
