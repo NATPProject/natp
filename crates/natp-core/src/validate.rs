@@ -1,0 +1,149 @@
+//! Validate theorem structure and report the field containing an error.
+
+use crate::{Code, DiagnosticField, DomainKind, catalogue::SyntaxEdge};
+use crate::{Domain, Element, Error, ErrorKind, Expr, Theorem, limits};
+
+impl Theorem {
+    /// Infer the element sort of a sequence term in this theorem's environment.
+    ///
+    /// # Errors
+    /// Returns a path-specific diagnostic for invalid IDs, sorts, or syntax limits.
+    pub fn sequence_element(&self, expression: &Expr) -> Result<Element, Error> {
+        Validator::new(&self.variables, DiagnosticField::Expression)
+            .validate_sequence(expression, 0)
+    }
+}
+
+struct Validator<'left> {
+    variables: &'left [Domain],
+    nodes: usize,
+    root: DiagnosticField,
+    path: Vec<SyntaxEdge>,
+}
+
+impl<'left> Validator<'left> {
+    fn new(variables: &'left [Domain], root: DiagnosticField) -> Self {
+        Self {
+            variables,
+            nodes: 0,
+            root,
+            path: vec![],
+        }
+    }
+
+    fn location(&self) -> String {
+        let mut path = self.root.as_str().to_owned();
+
+        for segment in &self.path {
+            path.push_str(segment.as_str());
+        }
+
+        path
+    }
+
+    fn error(&self, code: Code, message: impl Into<String>, help: impl Into<String>) -> Error {
+        Error::new(message)
+            .with_code(code)
+            .at(self.location())
+            .with_help(help)
+    }
+
+    fn at_path<T>(
+        &mut self,
+        segment: SyntaxEdge,
+        check: impl FnOnce(&mut Self) -> Result<T, Error>,
+    ) -> Result<T, Error> {
+        self.path.push(segment);
+        let result = check(self);
+        self.path.pop();
+
+        result
+    }
+
+    fn check_syntax_budget(&mut self, depth: usize) -> Result<(), Error> {
+        self.nodes += 1;
+        let excess = if depth > limits::MAX_SYNTAX_DEPTH {
+            Some(format!(
+                "syntax depth {depth} exceeds {}",
+                limits::MAX_SYNTAX_DEPTH
+            ))
+        } else if self.nodes > limits::MAX_SYNTAX_NODES {
+            Some(format!(
+                "syntax node count {} exceeds {}",
+                self.nodes,
+                limits::MAX_SYNTAX_NODES
+            ))
+        } else {
+            None
+        };
+
+        if let Some(message) = excess {
+            return Err(Error::with_kind(ErrorKind::ResourceLimit, message)
+                .with_code(Code::SyntaxBudget)
+                .at(self.location())
+                .with_help(
+                    "simplify the expression or split it into smaller independently checked claims",
+                ));
+        }
+
+        Ok(())
+    }
+
+    fn require_same_element_sort(&self, expected: Element, actual: Element) -> Result<(), Error> {
+        if expected == actual {
+            Ok(())
+        } else {
+            Err(self.error(
+                Code::ElementSort,
+                format!("element sort mismatch: expected {expected}, found {actual}"),
+                "use the same element sort on both sides; Seq<i32> and Seq<bool> cannot be mixed",
+            ))
+        }
+    }
+
+    fn variable(&self, id: usize, kind: DomainKind) -> Result<Element, Error> {
+        let expected = kind.as_str();
+
+        match self.variables.get(id) {
+            Some(Domain::Sequence(element)) if kind == DomainKind::Sequence => Ok(*element),
+            Some(Domain::Scalar(element)) if kind == DomainKind::Scalar => Ok(*element),
+            Some(domain) => Err(self.error(
+                Code::VariableDomain,
+                format!("variable {id} has domain {domain}; expected a {expected} variable"),
+                format!("use a {expected} quantifier at this position or reference a variable of that domain"),
+            )),
+            None => Err(self.error(
+                Code::UnknownVariable,
+                format!(
+                    "variable ID {id} is out of range for {} declared quantifiers",
+                    self.variables.len(),
+                ),
+                "variable IDs are zero-based and must refer to an entry in variables",
+            )),
+        }
+    }
+
+    fn validate_sequence(&mut self, expression: &Expr, depth: usize) -> Result<Element, Error> {
+        self.check_syntax_budget(depth)?;
+
+        match expression {
+            Expr::Empty(element) => Ok(*element),
+            Expr::Var(id) => self.variable(*id, DomainKind::Sequence),
+            Expr::Reverse(sequence) => self.at_path(SyntaxEdge::Unary, |validator| {
+                validator.validate_sequence(sequence, depth + 1)
+            }),
+            Expr::Append(left, right) => {
+                let left = self.at_path(SyntaxEdge::First, |validator| {
+                    validator.validate_sequence(left, depth + 1)
+                })?;
+                self.at_path(SyntaxEdge::Second, |validator| {
+                    let right = validator.validate_sequence(right, depth + 1)?;
+
+                    validator.require_same_element_sort(left, right)
+                })?;
+
+                Ok(left)
+            }
+        }
+    }
+}

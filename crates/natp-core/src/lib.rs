@@ -5,6 +5,7 @@ mod error;
 pub mod limits;
 mod logic;
 mod theorem;
+mod validate;
 
 pub use catalogue::{DiagnosticField, SyntaxEdge, TraceRule};
 pub use error::{Error, ErrorKind};
