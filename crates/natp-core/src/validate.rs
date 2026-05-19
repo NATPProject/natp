@@ -1,7 +1,7 @@
 //! Validate theorem structure and report the field containing an error.
 
 use crate::{Code, DiagnosticField, DomainKind, catalogue::SyntaxEdge};
-use crate::{Domain, Element, Error, ErrorKind, Expr, Prop, Scope, Theorem, limits};
+use crate::{Domain, ElemExpr, Element, Error, ErrorKind, Expr, Prop, Scope, Theorem, limits};
 
 impl Theorem {
     /// Check schema, quantifiers, scope, sorts, binders, and syntax budgets.
@@ -69,7 +69,7 @@ impl Theorem {
         }
 
         Validator::new(&self.variables, DiagnosticField::Claim)
-            .validate_proposition(&self.claim, 0)
+            .validate_proposition(&self.claim, None, 0)
             .map_err(|error| error.context(format!("theorem {:?}", self.name)))
     }
 
@@ -216,7 +216,33 @@ impl<'left> Validator<'left> {
         }
     }
 
-    fn validate_proposition(&mut self, proposition: &Prop, depth: usize) -> Result<(), Error> {
+    fn validate_element(
+        &mut self,
+        expression: &ElemExpr,
+        bound_element: Option<Element>,
+        depth: usize,
+    ) -> Result<Element, Error> {
+        self.check_syntax_budget(depth)?;
+
+        match expression {
+            ElemExpr::Constant(v) => Ok(v.element()),
+            ElemExpr::Bound => bound_element.ok_or_else(|| {
+                self.error(
+                    Code::UnboundElement,
+                    "bound element used outside an all predicate",
+                    "use this element only inside its enclosing all closure; use an Elem quantifier for a free scalar",
+                )
+            }),
+            ElemExpr::Var(id) => self.variable(*id, DomainKind::Scalar),
+        }
+    }
+
+    fn validate_proposition(
+        &mut self,
+        proposition: &Prop,
+        bound_element: Option<Element>,
+        depth: usize,
+    ) -> Result<(), Error> {
         self.check_syntax_budget(depth)?;
 
         match proposition {
@@ -232,16 +258,27 @@ impl<'left> Validator<'left> {
                     validator.require_same_element_sort(left, right)
                 })
             }
-            Prop::Not(predicate) => self.at_path(SyntaxEdge::Unary, |validator| {
-                validator.validate_proposition(predicate, depth + 1)
-            }),
-            Prop::And(left, right) | Prop::Or(left, right) | Prop::Implies(left, right) => {
-                self.at_path(SyntaxEdge::First, |validator| {
-                    validator.validate_proposition(left, depth + 1)
+            Prop::ElemEq(left, right) => {
+                let left = self.at_path(SyntaxEdge::First, |validator| {
+                    validator.validate_element(left, bound_element, depth + 1)
                 })?;
 
                 self.at_path(SyntaxEdge::Second, |validator| {
-                    validator.validate_proposition(right, depth + 1)
+                    let right = validator.validate_element(right, bound_element, depth + 1)?;
+
+                    validator.require_same_element_sort(left, right)
+                })
+            }
+            Prop::Not(predicate) => self.at_path(SyntaxEdge::Unary, |validator| {
+                validator.validate_proposition(predicate, bound_element, depth + 1)
+            }),
+            Prop::And(left, right) | Prop::Or(left, right) | Prop::Implies(left, right) => {
+                self.at_path(SyntaxEdge::First, |validator| {
+                    validator.validate_proposition(left, bound_element, depth + 1)
+                })?;
+
+                self.at_path(SyntaxEdge::Second, |validator| {
+                    validator.validate_proposition(right, bound_element, depth + 1)
                 })
             }
             _ => Err(self.error(
