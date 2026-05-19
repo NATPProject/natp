@@ -314,6 +314,23 @@ impl<'left> Validator<'left> {
                     validator.require_same_element_sort(left, right)
                 })
             }
+            Prop::All(sequence, predicate) => {
+                if bound_element.is_some() {
+                    return Err(self.error(
+                        Code::NestedBinder,
+                        "nested all binders are not supported",
+                        "remove the inner all binder; this language supports one bound element at a time",
+                    ));
+                }
+
+                let element = self.at_path(SyntaxEdge::First, |validator| {
+                    validator.validate_sequence(sequence, depth + 1)
+                })?;
+
+                self.at_path(SyntaxEdge::Second, |validator| {
+                    validator.validate_proposition(predicate, Some(element), depth + 1)
+                })
+            }
             Prop::Not(predicate) => self.at_path(SyntaxEdge::Unary, |validator| {
                 validator.validate_proposition(predicate, bound_element, depth + 1)
             }),
@@ -326,11 +343,6 @@ impl<'left> Validator<'left> {
                     validator.validate_proposition(right, bound_element, depth + 1)
                 })
             }
-            _ => Err(self.error(
-                Code::UnsupportedExpression,
-                "unsupported proposition",
-                "use a supported predicate",
-            )),
         }
     }
 }
