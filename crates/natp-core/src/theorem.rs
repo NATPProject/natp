@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-/// Portable logical IR. Contains typed claim syntax and quantifier metadata.
+/// Portable logical IR. Call [`Self::validate`] after direct construction or mutation.
 /// All built-in backends validate before interpreting this representation.
 pub struct Theorem {
     /// Wire-format version; must equal [`crate::limits::SCHEMA_VERSION`].

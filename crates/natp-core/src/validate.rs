@@ -1,9 +1,78 @@
 //! Validate theorem structure and report the field containing an error.
 
 use crate::{Code, DiagnosticField, DomainKind, catalogue::SyntaxEdge};
-use crate::{Domain, Element, Error, ErrorKind, Expr, Theorem, limits};
+use crate::{Domain, Element, Error, ErrorKind, Expr, Prop, Scope, Theorem, limits};
 
 impl Theorem {
+    /// Check schema, quantifiers, scope, sorts, binders, and syntax budgets.
+    ///
+    /// # Errors
+    /// Returns a coded diagnostic with the failing IR path and a corrective hint.
+    /// This checks representation validity, not whether the proposition is true.
+    pub fn validate(&self) -> Result<(), Error> {
+        let header_error = |code, path, message: String, help| {
+            Error::new(message).with_code(code).at(path).with_help(help)
+        };
+
+        if self.schema_version != limits::SCHEMA_VERSION {
+            return Err(header_error(
+                Code::SchemaVersion,
+                DiagnosticField::SchemaVersion.as_str().to_owned(),
+                format!(
+                    "unsupported schema version {}; expected {}",
+                    self.schema_version,
+                    limits::SCHEMA_VERSION,
+                ),
+                "use the supported theorem schema version; do not relabel an older schema without \
+                 migrating its contents",
+            ));
+        }
+
+        if self.name.is_empty() || self.name.len() > limits::MAX_NAME_BYTES {
+            return Err(header_error(
+                Code::TheoremName,
+                DiagnosticField::Name.as_str().to_owned(),
+                format!(
+                    "theorem name has {} UTF-8 bytes; expected 1..={}",
+                    self.name.len(),
+                    limits::MAX_NAME_BYTES
+                ),
+                "provide a nonempty name within the byte limit",
+            ));
+        }
+
+        if self.variables.is_empty() || self.variables.len() > limits::MAX_VARIABLES {
+            return Err(header_error(
+                Code::QuantifierCount,
+                DiagnosticField::Variables.as_str().to_owned(),
+                format!(
+                    "received {} quantified variables; expected 1..={}",
+                    self.variables.len(),
+                    limits::MAX_VARIABLES,
+                ),
+                "declare one to eight Seq or Elem quantifiers and keep variable IDs in declaration order",
+            ));
+        }
+
+        if let Scope::Bounded { max_len } = self.scope {
+            if max_len > limits::MAX_BOUNDED_LENGTH {
+                return Err(header_error(
+                    Code::LengthBound,
+                    DiagnosticField::Scope.child(DiagnosticField::MaximumLength),
+                    format!(
+                        "sequence bound {max_len} exceeds {}",
+                        limits::MAX_BOUNDED_LENGTH
+                    ),
+                    "reduce max_length; use unbounded kernel reasoning only if that is the intended scope",
+                ));
+            }
+        }
+
+        Validator::new(&self.variables, DiagnosticField::Claim)
+            .validate_proposition(&self.claim, 0)
+            .map_err(|error| error.context(format!("theorem {:?}", self.name)))
+    }
+
     /// Infer the element sort of a sequence term in this theorem's environment.
     ///
     /// # Errors
@@ -144,6 +213,42 @@ impl<'left> Validator<'left> {
 
                 Ok(left)
             }
+        }
+    }
+
+    fn validate_proposition(&mut self, proposition: &Prop, depth: usize) -> Result<(), Error> {
+        self.check_syntax_budget(depth)?;
+
+        match proposition {
+            Prop::Bool(_) => Ok(()),
+            Prop::SeqEq(left, right) => {
+                let left = self.at_path(SyntaxEdge::First, |validator| {
+                    validator.validate_sequence(left, depth + 1)
+                })?;
+
+                self.at_path(SyntaxEdge::Second, |validator| {
+                    let right = validator.validate_sequence(right, depth + 1)?;
+
+                    validator.require_same_element_sort(left, right)
+                })
+            }
+            Prop::Not(predicate) => self.at_path(SyntaxEdge::Unary, |validator| {
+                validator.validate_proposition(predicate, depth + 1)
+            }),
+            Prop::And(left, right) | Prop::Or(left, right) | Prop::Implies(left, right) => {
+                self.at_path(SyntaxEdge::First, |validator| {
+                    validator.validate_proposition(left, depth + 1)
+                })?;
+
+                self.at_path(SyntaxEdge::Second, |validator| {
+                    validator.validate_proposition(right, depth + 1)
+                })
+            }
+            _ => Err(self.error(
+                Code::UnsupportedExpression,
+                "unsupported proposition",
+                "use a supported predicate",
+            )),
         }
     }
 }
