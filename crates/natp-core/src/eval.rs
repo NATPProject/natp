@@ -1,4 +1,6 @@
-use crate::{Assignment, Domain, ElemExpr, Error, ErrorKind, Expr, Prop, Scope, Theorem, Value};
+use crate::{
+    Assignment, Domain, ElemExpr, Error, ErrorKind, Expr, NatExpr, Prop, Scope, Theorem, Value,
+};
 use crate::{Code, DiagnosticField};
 
 struct Evaluator<'left> {
@@ -72,6 +74,19 @@ impl Evaluator<'_> {
         }
     }
 
+    fn evaluate_natural(&mut self, expression: &NatExpr) -> Result<u128, Error> {
+        self.spend_fuel(1)?;
+
+        match expression {
+            NatExpr::Constant(n) => Ok(u128::from(*n)),
+            NatExpr::Length(sequence) => Ok(self.evaluate_sequence(sequence)?.len() as u128),
+            NatExpr::Add(left, right) => self
+                .evaluate_natural(left)?
+                .checked_add(self.evaluate_natural(right)?)
+                .ok_or_else(|| Error::new("natural evaluation overflow")),
+        }
+    }
+
     fn evaluate_proposition(
         &mut self,
         proposition: &Prop,
@@ -87,6 +102,9 @@ impl Evaluator<'_> {
             Prop::ElemEq(left, right) => {
                 self.evaluate_element(left, bound_element)?
                     == self.evaluate_element(right, bound_element)?
+            }
+            Prop::NatEq(left, right) => {
+                self.evaluate_natural(left)? == self.evaluate_natural(right)?
             }
             Prop::Not(predicate) => !self.evaluate_proposition(predicate, bound_element)?,
             Prop::And(left, right) => {
