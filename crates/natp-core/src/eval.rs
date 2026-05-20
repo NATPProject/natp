@@ -106,6 +106,10 @@ impl Evaluator<'_> {
             Prop::NatEq(left, right) => {
                 self.evaluate_natural(left)? == self.evaluate_natural(right)?
             }
+            Prop::IsEmpty(sequence) => self.evaluate_sequence(sequence)?.is_empty(),
+            Prop::Contains(sequence, element) => self
+                .evaluate_sequence(sequence)?
+                .contains(&self.evaluate_element(element, bound_element)?),
             Prop::Not(predicate) => !self.evaluate_proposition(predicate, bound_element)?,
             Prop::And(left, right) => {
                 self.evaluate_proposition(left, bound_element)?
