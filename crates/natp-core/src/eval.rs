@@ -1,4 +1,4 @@
-use crate::{Assignment, Domain, Error, ErrorKind, Expr, Prop, Scope, Theorem, Value};
+use crate::{Assignment, Domain, ElemExpr, Error, ErrorKind, Expr, Prop, Scope, Theorem, Value};
 use crate::{Code, DiagnosticField};
 
 struct Evaluator<'left> {
@@ -55,7 +55,28 @@ impl Evaluator<'_> {
         }
     }
 
-    fn evaluate_proposition(&mut self, proposition: &Prop) -> Result<bool, Error> {
+    fn evaluate_element(
+        &self,
+        expression: &ElemExpr,
+        bound_element: Option<&Value>,
+    ) -> Result<Value, Error> {
+        match expression {
+            ElemExpr::Constant(value) => Ok(value.clone()),
+            ElemExpr::Bound => bound_element
+                .cloned()
+                .ok_or_else(|| Error::new("unbound element")),
+            ElemExpr::Var(id) => match self.values.get(*id) {
+                Some(Assignment::Scalar(value)) => Ok(value.clone()),
+                _ => Err(Error::new("expected scalar assignment")),
+            },
+        }
+    }
+
+    fn evaluate_proposition(
+        &mut self,
+        proposition: &Prop,
+        bound_element: Option<&Value>,
+    ) -> Result<bool, Error> {
         self.spend_fuel(1)?;
 
         Ok(match proposition {
@@ -63,15 +84,22 @@ impl Evaluator<'_> {
             Prop::SeqEq(left, right) => {
                 self.evaluate_sequence(left)? == self.evaluate_sequence(right)?
             }
-            Prop::Not(predicate) => !self.evaluate_proposition(predicate)?,
+            Prop::ElemEq(left, right) => {
+                self.evaluate_element(left, bound_element)?
+                    == self.evaluate_element(right, bound_element)?
+            }
+            Prop::Not(predicate) => !self.evaluate_proposition(predicate, bound_element)?,
             Prop::And(left, right) => {
-                self.evaluate_proposition(left)? && self.evaluate_proposition(right)?
+                self.evaluate_proposition(left, bound_element)?
+                    && self.evaluate_proposition(right, bound_element)?
             }
             Prop::Or(left, right) => {
-                self.evaluate_proposition(left)? || self.evaluate_proposition(right)?
+                self.evaluate_proposition(left, bound_element)?
+                    || self.evaluate_proposition(right, bound_element)?
             }
             Prop::Implies(left, right) => {
-                !self.evaluate_proposition(left)? || self.evaluate_proposition(right)?
+                !self.evaluate_proposition(left, bound_element)?
+                    || self.evaluate_proposition(right, bound_element)?
             }
             _ => {
                 return Err(
@@ -169,6 +197,6 @@ impl Theorem {
             }
         }
 
-        Evaluator { values, fuel }.evaluate_proposition(&self.claim)
+        Evaluator { values, fuel }.evaluate_proposition(&self.claim, None)
     }
 }
