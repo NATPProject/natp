@@ -110,6 +110,15 @@ impl Evaluator<'_> {
             Prop::Contains(sequence, element) => self
                 .evaluate_sequence(sequence)?
                 .contains(&self.evaluate_element(element, bound_element)?),
+            Prop::All(sequence, predicate) => {
+                for value in self.evaluate_sequence(sequence)? {
+                    if !self.evaluate_proposition(predicate, Some(&value))? {
+                        return Ok(false);
+                    }
+                }
+
+                true
+            }
             Prop::Not(predicate) => !self.evaluate_proposition(predicate, bound_element)?,
             Prop::And(left, right) => {
                 self.evaluate_proposition(left, bound_element)?
@@ -122,11 +131,6 @@ impl Evaluator<'_> {
             Prop::Implies(left, right) => {
                 !self.evaluate_proposition(left, bound_element)?
                     || self.evaluate_proposition(right, bound_element)?
-            }
-            _ => {
-                return Err(
-                    Error::new("unsupported proposition").with_code(Code::UnsupportedExpression)
-                );
             }
         })
     }
