@@ -23,7 +23,17 @@ pub fn load_json<T: DeserializeOwned>(path: &Path, limit: usize) -> Result<T, Er
             ));
         }
 
-        let value = serde_json::from_slice(&bytes)?;
+        let mut decoder = serde_json::Deserializer::from_slice(&bytes);
+        let value = serde_path_to_error::deserialize(&mut decoder).map_err(|error| {
+            let field = error.path().to_string();
+            let cause = error.into_inner();
+            let position = format!("{field} (line {}, column {})", cause.line(), cause.column());
+
+            Error::from(cause).at(position)
+        })?;
+
+        // Deserialising one value does not reject additional input; require end-of-file.
+        decoder.end()?;
 
         Ok(value)
     };
