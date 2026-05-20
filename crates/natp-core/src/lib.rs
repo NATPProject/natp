@@ -5,6 +5,7 @@ mod error;
 mod eval;
 pub mod limits;
 mod logic;
+pub mod storage;
 mod theorem;
 mod validate;
 
