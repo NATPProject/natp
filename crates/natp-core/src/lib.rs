@@ -2,6 +2,7 @@
 
 mod catalogue;
 mod error;
+mod eval;
 pub mod limits;
 mod logic;
 mod theorem;
