@@ -1,8 +1,12 @@
-//! Bounded JSON input.
+//! Bounded JSON input and atomic replacement of persisted evidence.
 
 use crate::{Error, ErrorKind};
-use serde::de::DeserializeOwned;
-use std::{fs::File, io::Read, path::Path};
+use serde::{Serialize, de::DeserializeOwned};
+use std::{
+    fs::File,
+    io::{Read, Write},
+    path::Path,
+};
 
 /// Decode JSON within the byte limit, adding the file path to errors.
 ///
@@ -39,4 +43,38 @@ pub fn load_json<T: DeserializeOwned>(path: &Path, limit: usize) -> Result<T, Er
     };
 
     read().map_err(|error| error.context(format!("read {}", path.display())))
+}
+
+/// Encode JSON and atomically replace a destination after enforcing its byte limit.
+///
+/// # Errors
+/// Returns an I/O, serialisation, or resource-limit error. The parent directory
+/// must already exist. Existing destination contents survive a failed write.
+pub fn save_json<T: Serialize>(value: &T, path: &Path, limit: usize) -> Result<(), Error> {
+    let write = || -> Result<(), Error> {
+        let bytes = serde_json::to_vec_pretty(value)?;
+
+        if bytes.len() > limit {
+            return Err(Error::with_kind(
+                ErrorKind::ResourceLimit,
+                format!("JSON output exceeds {limit} bytes"),
+            ));
+        }
+
+        let parent = match path.parent() {
+            Some(parent) if !parent.as_os_str().is_empty() => parent,
+            _ => Path::new("."),
+        };
+
+        let mut temporary = tempfile::NamedTempFile::new_in(parent)?;
+        temporary.write_all(&bytes)?;
+
+        temporary
+            .persist(path)
+            .map_err(|error| Error::from(error.error))?;
+
+        Ok(())
+    };
+
+    write().map_err(|error| error.context(format!("write {}", path.display())))
 }
