@@ -68,6 +68,7 @@ pub fn save_json<T: Serialize>(value: &T, path: &Path, limit: usize) -> Result<(
 
         let mut temporary = tempfile::NamedTempFile::new_in(parent)?;
         temporary.write_all(&bytes)?;
+        temporary.as_file().sync_all()?;
 
         temporary
             .persist(path)
