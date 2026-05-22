@@ -32,4 +32,17 @@ impl Theorem {
 
         storage::save_json(self, path.as_ref(), limits::MAX_THEOREM_BYTES)
     }
+
+    /// Read and validate a theorem's representation before backend execution.
+    ///
+    /// # Errors
+    /// Returns path-qualified I/O, size, JSON decoding, or semantic validation errors.
+    pub fn load(path: impl AsRef<Path>) -> Result<Self, Error> {
+        let theorem: Self = storage::load_json(path.as_ref(), limits::MAX_THEOREM_BYTES)?;
+        theorem
+            .validate()
+            .map_err(|error| error.context(format!("read {}", path.as_ref().display())))?;
+
+        Ok(theorem)
+    }
 }
