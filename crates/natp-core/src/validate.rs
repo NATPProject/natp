@@ -25,7 +25,7 @@ impl Theorem {
                     self.schema_version,
                     limits::SCHEMA_VERSION,
                 ),
-                "use the supported theorem schema version; do not relabel an older schema without \
+                "regenerate the theorem with Theorem::save; do not relabel an older schema without \
                  migrating its contents",
             ));
         }
