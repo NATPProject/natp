@@ -15,3 +15,29 @@ pub struct Trace {
     /// Rule applications supporting this step, in deterministic order.
     pub premises: Vec<Trace>,
 }
+
+impl Trace {
+    /// Render the trace as an indented tree.
+    pub fn render(&self) -> String {
+        fn render_trace(trace: &Trace, depth: usize, output: &mut String) {
+            use std::fmt::Write;
+            let _ = writeln!(
+                output,
+                "{}{}: {} -> {}",
+                "  ".repeat(depth),
+                trace.rule,
+                trace.before,
+                trace.after
+            );
+
+            for premise in &trace.premises {
+                render_trace(premise, depth + 1, output);
+            }
+        }
+
+        let mut output = String::new();
+        render_trace(self, 0, &mut output);
+
+        output
+    }
+}
