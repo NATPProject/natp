@@ -45,7 +45,7 @@ impl ErrorKind {
     }
 }
 
-/// An input or execution failure.
+/// An execution or input failure, separate from a logical [`crate::Outcome`].
 ///
 /// Typed diagnostic data is shared with macros and the CLI; the runtime also
 /// retains an underlying cause through [`std::error::Error::source`].
