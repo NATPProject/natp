@@ -1,5 +1,6 @@
-use crate::{Assignment, Theorem, Trace};
+use crate::{Assignment, Scope, Theorem, Trace};
 use serde::{Deserialize, Serialize};
+use std::fmt;
 
 /// A backend result, including its evidence category and quantification scope.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -53,4 +54,18 @@ pub struct Report {
     pub evidence: String,
     /// Optional native derivation trace; absent for non-kernel evidence.
     pub trace: Option<Trace>,
+}
+
+impl fmt::Display for Report {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let scope = match self.theorem.scope {
+            Scope::Unbounded => "all finite lengths".to_owned(),
+            Scope::Bounded { max_len } => format!("each sequence length 0..={max_len} only"),
+        };
+        write!(
+            formatter,
+            "{} ... {:?} [{}; {:?}]",
+            self.theorem.name, self.outcome, scope, self.method
+        )
+    }
 }
