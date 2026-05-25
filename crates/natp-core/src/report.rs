@@ -74,6 +74,18 @@ impl Report {
 
         *max_length == max_len && self.method == Method::NativeBounded
     }
+
+    /// Test for an unbounded result explicitly trusting the external SMT solver.
+    pub fn is_smt_validated(&self) -> bool {
+        self.outcome == Outcome::SmtValidated
+            && self.method == Method::SmtInduction
+            && self.theorem.scope == Scope::Unbounded
+    }
+
+    /// Accepts any successful method without promoting its outcome.
+    pub fn is_established(&self) -> bool {
+        self.is_proven() || self.is_verified() || self.is_smt_validated()
+    }
 }
 
 impl fmt::Display for Report {
