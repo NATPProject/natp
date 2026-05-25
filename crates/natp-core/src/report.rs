@@ -60,6 +60,7 @@ pub struct Report {
 enum ReportRequirement {
     KernelProof,
     BoundedVerification,
+    SmtValidation,
 }
 
 impl ReportRequirement {
@@ -67,6 +68,7 @@ impl ReportRequirement {
         match self {
             Self::KernelProof => "native kernel proof",
             Self::BoundedVerification => "bounded verification",
+            Self::SmtValidation => "SMT validation",
         }
     }
 
@@ -74,6 +76,7 @@ impl ReportRequirement {
         match self {
             Self::KernelProof => report.is_proven(),
             Self::BoundedVerification => report.is_verified(),
+            Self::SmtValidation => report.is_smt_validated(),
         }
     }
 }
@@ -123,6 +126,14 @@ impl Report {
     /// Returns [`ErrorKind::UnexpectedOutcome`] unless [`Self::is_verified`] holds.
     pub fn require_verified(&self) -> Result<(), Error> {
         self.require(ReportRequirement::BoundedVerification)
+    }
+
+    /// Require SMT validation, returning an error for other outcomes.
+    ///
+    /// # Errors
+    /// Returns [`ErrorKind::UnexpectedOutcome`] unless [`Self::is_smt_validated`] holds.
+    pub fn require_smt_validated(&self) -> Result<(), Error> {
+        self.require(ReportRequirement::SmtValidation)
     }
 
     fn require(&self, requirement: ReportRequirement) -> Result<(), Error> {
