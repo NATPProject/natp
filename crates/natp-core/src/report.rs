@@ -1,4 +1,4 @@
-use crate::{Assignment, Scope, Theorem, Trace};
+use crate::{Assignment, Error, ErrorKind, Scope, Theorem, Trace};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
@@ -56,6 +56,28 @@ pub struct Report {
     pub trace: Option<Trace>,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum ReportRequirement {
+    KernelProof,
+    BoundedVerification,
+}
+
+impl ReportRequirement {
+    const fn description(self) -> &'static str {
+        match self {
+            Self::KernelProof => "native kernel proof",
+            Self::BoundedVerification => "bounded verification",
+        }
+    }
+
+    fn accepts(self, report: &Report) -> bool {
+        match self {
+            Self::KernelProof => report.is_proven(),
+            Self::BoundedVerification => report.is_verified(),
+        }
+    }
+}
+
 impl Report {
     /// Test for an unbounded native-kernel result with consistent method and scope.
     pub fn is_proven(&self) -> bool {
@@ -85,6 +107,33 @@ impl Report {
     /// Accepts any successful method without promoting its outcome.
     pub fn is_established(&self) -> bool {
         self.is_proven() || self.is_verified() || self.is_smt_validated()
+    }
+
+    /// Require native proof without panicking.
+    ///
+    /// # Errors
+    /// Returns [`ErrorKind::UnexpectedOutcome`] unless [`Self::is_proven`] holds.
+    pub fn require_proven(&self) -> Result<(), Error> {
+        self.require(ReportRequirement::KernelProof)
+    }
+
+    /// Require finite verification without panicking.
+    ///
+    /// # Errors
+    /// Returns [`ErrorKind::UnexpectedOutcome`] unless [`Self::is_verified`] holds.
+    pub fn require_verified(&self) -> Result<(), Error> {
+        self.require(ReportRequirement::BoundedVerification)
+    }
+
+    fn require(&self, requirement: ReportRequirement) -> Result<(), Error> {
+        if requirement.accepts(self) {
+            Ok(())
+        } else {
+            Err(Error::with_kind(
+                ErrorKind::UnexpectedOutcome,
+                format!("expected {}: {self}", requirement.description()),
+            ))
+        }
     }
 }
 
