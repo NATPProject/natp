@@ -63,6 +63,17 @@ impl Report {
             && self.method == Method::Kernel
             && self.theorem.scope == Scope::Unbounded
     }
+
+    /// Test for a finite result whose reported bound matches the theorem.
+    pub fn is_verified(&self) -> bool {
+        let (Outcome::Verified { max_length }, Scope::Bounded { max_len }) =
+            (&self.outcome, self.theorem.scope)
+        else {
+            return false;
+        };
+
+        *max_length == max_len && self.method == Method::NativeBounded
+    }
 }
 
 impl fmt::Display for Report {
