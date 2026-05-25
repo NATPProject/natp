@@ -56,6 +56,15 @@ pub struct Report {
     pub trace: Option<Trace>,
 }
 
+impl Report {
+    /// Test for an unbounded native-kernel result with consistent method and scope.
+    pub fn is_proven(&self) -> bool {
+        self.outcome == Outcome::Proven
+            && self.method == Method::Kernel
+            && self.theorem.scope == Scope::Unbounded
+    }
+}
+
 impl fmt::Display for Report {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         let scope = match self.theorem.scope {
