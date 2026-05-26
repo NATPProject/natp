@@ -146,6 +146,22 @@ impl Report {
             ))
         }
     }
+
+    /// Assert native proof in a test.
+    ///
+    /// # Panics
+    /// Panics unless [`Self::is_proven`] holds. Applications can use [`Self::require_proven`].
+    pub fn assert_proven(&self) {
+        assert!(self.is_proven(), "{self}");
+    }
+
+    /// Alias for [`Self::assert_proven`], with the same panic contract.
+    ///
+    /// # Panics
+    /// Panics unless this report represents a native kernel proof.
+    pub fn assert_unbounded(&self) {
+        self.assert_proven();
+    }
 }
 
 impl fmt::Display for Report {
