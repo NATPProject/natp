@@ -92,6 +92,20 @@ pub enum Method {
     SmtInduction,
 }
 
+impl Method {
+    /// Every backend method, in declaration order.
+    pub const ALL: [Self; 3] = [Self::Kernel, Self::NativeBounded, Self::SmtInduction];
+
+    /// Stable label matching the serialised variant name.
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Kernel => "Kernel",
+            Self::NativeBounded => "NativeBounded",
+            Self::SmtInduction => "SmtInduction",
+        }
+    }
+}
+
 /// Evidence returned by a backend. Inspect the outcome before using a claim.
 ///
 /// Reports are descriptive, publicly constructible values, not authenticated
