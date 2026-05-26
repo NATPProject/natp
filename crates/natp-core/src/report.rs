@@ -162,6 +162,22 @@ impl Report {
     pub fn assert_unbounded(&self) {
         self.assert_proven();
     }
+
+    /// Assert a consistent finite verification result in a test.
+    ///
+    /// # Panics
+    /// Panics unless [`Self::is_verified`] holds; see [`Self::require_verified`].
+    pub fn assert_verified(&self) {
+        assert!(self.is_verified(), "{self}");
+    }
+
+    /// Assert that the report represents SMT validation.
+    ///
+    /// # Panics
+    /// Panics unless [`Self::is_smt_validated`] holds; see [`Self::require_smt_validated`].
+    pub fn assert_smt_validated(&self) {
+        assert!(self.is_smt_validated(), "{self}");
+    }
 }
 
 impl fmt::Display for Report {
