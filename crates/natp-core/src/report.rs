@@ -26,6 +26,61 @@ pub enum Outcome {
     },
 }
 
+/// Stable report outcome category, without outcome-specific evidence payloads.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum OutcomeKind {
+    /// Native unbounded proof.
+    Proven,
+    /// Finite verification.
+    Verified,
+    /// External SMT validation.
+    SmtValidated,
+    /// Concrete refutation.
+    Refuted,
+    /// No conclusion.
+    Inconclusive,
+}
+
+impl OutcomeKind {
+    /// All outcome categories in declaration order.
+    pub const ALL: [Self; 5] = [
+        Self::Proven,
+        Self::Verified,
+        Self::SmtValidated,
+        Self::Refuted,
+        Self::Inconclusive,
+    ];
+
+    /// Stable label matching the serialised variant name.
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Proven => "Proven",
+            Self::Verified => "Verified",
+            Self::SmtValidated => "SmtValidated",
+            Self::Refuted => "Refuted",
+            Self::Inconclusive => "Inconclusive",
+        }
+    }
+}
+
+impl Outcome {
+    /// Return the outcome category without its variant-specific data.
+    pub const fn kind(&self) -> OutcomeKind {
+        match self {
+            Self::Proven => OutcomeKind::Proven,
+            Self::Verified { .. } => OutcomeKind::Verified,
+            Self::SmtValidated => OutcomeKind::SmtValidated,
+            Self::Refuted { .. } => OutcomeKind::Refuted,
+            Self::Inconclusive { .. } => OutcomeKind::Inconclusive,
+        }
+    }
+
+    /// Stable outcome label for human-readable evaluation tables.
+    pub const fn label(&self) -> &'static str {
+        self.kind().as_str()
+    }
+}
+
 /// The procedure and trust boundary responsible for a report.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Method {
