@@ -40,7 +40,8 @@ impl ExecutionSetting {
 /// Run a directly spawned command with a deadline and bounded captured output.
 ///
 /// Standard input is closed. A zero timeout never starts a child. Output limits
-/// are enforced when reading captured output. Descendant processes are not managed.
+/// are polled during execution and enforced again while reading; brief disk
+/// growth between polls is possible. Descendant processes are not managed.
 ///
 /// # Errors
 /// Returns an I/O error for spawn, wait, or UTF-8 decoding failure, or a resource
@@ -74,6 +75,12 @@ fn run_with_output_limits(command: &mut Command, timeout: Duration) -> Result<Ou
     let start = Instant::now();
 
     let (status, timed_out) = loop {
+        if stdout.metadata()?.len() > MAX_OUTPUT_BYTES
+            || stderr.metadata()?.len() > MAX_OUTPUT_BYTES
+        {
+            return Err(output_limit_error());
+        }
+
         if let Some(status) = child.try_wait()? {
             break (status, false);
         }
