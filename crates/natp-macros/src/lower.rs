@@ -92,6 +92,12 @@ impl LoweringContext<'_> {
                 Ok(quote!(#literal))
             }
 
+            Expr::Unary(unary)
+                if matches!(unary.op, UnOp::Neg(_))
+                    && matches!(unary.expr.as_ref(), Expr::Lit(_)) =>
+            {
+                Ok(quote!(#unary))
+            }
             Expr::Binary(_) | Expr::Unary(_) => self.lower_proposition(expression),
             _ => Err(unsupported_expression(expression)),
         }
