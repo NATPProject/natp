@@ -28,12 +28,12 @@ impl LoweringContext<'_> {
 
     fn lower_binary(&self, binary: &ExprBinary) -> syn::Result<Tokens> {
         match binary.op {
-            BinOp::Eq(_) => self.lower_equality(binary),
+            BinOp::Eq(_) | BinOp::Ne(_) => self.lower_equality(binary),
             _ => Err(syn::Error::new_spanned(
                 binary.op,
                 diagnostic!(
                     UnsupportedOperator,
-                    "unsupported proposition operator; use ==",
+                    "unsupported proposition operator; use == or !=",
                 ),
             )),
         }
@@ -42,7 +42,12 @@ impl LoweringContext<'_> {
     fn lower_equality(&self, binary: &ExprBinary) -> syn::Result<Tokens> {
         let receiver = self.lower_term(&binary.left)?;
         let argument = self.lower_term(&binary.right)?;
-        Ok(quote_spanned!(binary.span()=> (#receiver).equals(#argument)))
+        let equality = quote_spanned!(binary.span()=> (#receiver).equals(#argument));
+        if matches!(binary.op, BinOp::Ne(_)) {
+            Ok(quote!(!(#equality)))
+        } else {
+            Ok(equality)
+        }
     }
 
     fn lower_term(&self, expression: &Expr) -> syn::Result<Tokens> {
@@ -90,10 +95,10 @@ fn unsupported_expression(expression: &Expr) -> syn::Error {
             normal closure to .claim(...) without claim!"
         }
         Expr::If(_) | Expr::Match(_) => {
-            "runtime control flow is not supported; express the claim with =="
+            "runtime control flow is not supported; express the claim with == or !="
         }
-        Expr::Lit(_) => "expected a proposition, not a value; compare values with ==",
-        _ => "compare quantified variables with ==",
+        Expr::Lit(_) => "expected a proposition, not a value; compare values with == or !=",
+        _ => "compare quantified variables with == or !=",
     };
 
     syn::Error::new_spanned(
