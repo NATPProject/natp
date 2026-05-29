@@ -2,7 +2,7 @@ use natp_diagnostics::diagnostic;
 use proc_macro2::TokenStream as Tokens;
 use quote::{quote, quote_spanned};
 use syn::spanned::Spanned;
-use syn::{BinOp, Expr, ExprBinary, Ident, Lit, UnOp};
+use syn::{BinOp, Expr, ExprBinary, Ident, Lit, Stmt, UnOp};
 
 pub(super) fn lower_proposition(
     root: &Tokens,
@@ -111,6 +111,24 @@ impl LoweringContext<'_> {
 fn ungroup_expression(expression: &Expr) -> syn::Result<&Expr> {
     match expression {
         Expr::Paren(parentheses) => ungroup_expression(&parentheses.expr),
+        Expr::Block(block) if block.block.stmts.len() == 1 => match &block.block.stmts[0] {
+            Stmt::Expr(expression, None) => ungroup_expression(expression),
+            _ => Err(syn::Error::new_spanned(
+                expression,
+                diagnostic!(
+                    ClaimBlock,
+                    "claim blocks must contain a single expression without a trailing semicolon; move let \
+                     bindings and runtime statements outside claim!",
+                ),
+            )),
+        },
+        Expr::Block(_) => Err(syn::Error::new_spanned(
+            expression,
+            diagnostic!(
+                ClaimBlock,
+                "claim blocks must contain exactly one expression; remove statements and the trailing semicolon",
+            ),
+        )),
         _ => Ok(expression),
     }
 }
