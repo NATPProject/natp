@@ -1,0 +1,20 @@
+[package]
+name = "natp-macros"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Restricted proposition syntax for the NATP theorem builder"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+natp-diagnostics.workspace = true
+syn = { version = "2", features = ["full"] }
+quote = "1"
+proc-macro2 = "1"
+proc-macro-crate = "3"
+
+[lints]
+workspace = true

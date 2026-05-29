@@ -2,6 +2,7 @@
 members = [
     "crates/natp-diagnostics",
     "crates/natp-core",
+    "crates/natp-macros",
 ]
 resolver = "3"
 
