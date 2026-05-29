@@ -20,8 +20,12 @@ struct LoweringContext<'a> {
 impl LoweringContext<'_> {
     fn lower_proposition(&self, expression: &Expr) -> syn::Result<Tokens> {
         let expression = ungroup_expression(expression)?;
+        let root = self.root;
 
         match expression {
+            Expr::Lit(literal) if matches!(literal.lit, Lit::Bool(_)) => {
+                Ok(quote!(#root::Prop::Bool(#literal)))
+            }
             Expr::Binary(binary) => self.lower_binary(binary),
             _ => Err(unsupported_expression(expression)),
         }
