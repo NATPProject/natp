@@ -2,17 +2,18 @@ use natp_diagnostics::diagnostic;
 use proc_macro2::TokenStream as Tokens;
 use quote::{quote, quote_spanned};
 use syn::spanned::Spanned;
-use syn::{BinOp, Expr, ExprBinary, Ident};
+use syn::{BinOp, Expr, ExprBinary, Ident, Lit, UnOp};
 
 pub(super) fn lower_proposition(
-    _root: &Tokens,
+    root: &Tokens,
     variables: &[Ident],
     expression: &Expr,
 ) -> syn::Result<Tokens> {
-    LoweringContext { variables }.lower_proposition(expression)
+    LoweringContext { root, variables }.lower_proposition(expression)
 }
 
 struct LoweringContext<'a> {
+    root: &'a Tokens,
     variables: &'a [Ident],
 }
 
@@ -40,9 +41,22 @@ impl LoweringContext<'_> {
     }
 
     fn lower_equality(&self, binary: &ExprBinary) -> syn::Result<Tokens> {
-        let receiver = self.lower_term(&binary.left)?;
-        let argument = self.lower_term(&binary.right)?;
-        let equality = quote_spanned!(binary.span()=> (#receiver).equals(#argument));
+        let root = self.root;
+        let (left, right) = if is_literal(&binary.left) && !is_literal(&binary.right) {
+            (&binary.right, &binary.left)
+        } else {
+            (&binary.left, &binary.right)
+        };
+
+        let receiver = self.lower_term(left)?;
+        let argument = self.lower_term(right)?;
+
+        let equality = if is_literal(left) {
+            quote_spanned!(binary.span()=> #root::literal(#receiver).equals(#argument))
+        } else {
+            quote_spanned!(binary.span()=> (#receiver).equals(#argument))
+        };
+
         if matches!(binary.op, BinOp::Ne(_)) {
             Ok(quote!(!(#equality)))
         } else {
@@ -70,10 +84,14 @@ impl LoweringContext<'_> {
                     diagnostic!(
                         UnknownSymbol,
                         "unknown symbolic variable; available variables: {available}; add a quantifier and \
-                         matching closure parameter",
+                         matching closure parameter, or use an integer/Boolean literal",
                     ),
                 ))
             }
+            Expr::Lit(literal) if matches!(literal.lit, Lit::Int(_) | Lit::Bool(_)) => {
+                Ok(quote!(#literal))
+            }
+
             Expr::Binary(_) | Expr::Unary(_) => self.lower_proposition(expression),
             _ => Err(unsupported_expression(expression)),
         }
@@ -87,6 +105,11 @@ fn ungroup_expression(expression: &Expr) -> syn::Result<&Expr> {
     }
 }
 
+fn is_literal(expression: &Expr) -> bool {
+    matches!(expression, Expr::Lit(_))
+        || matches!(expression, Expr::Unary(unary) if matches!(unary.op, UnOp::Neg(_)))
+}
+
 fn unsupported_expression(expression: &Expr) -> syn::Error {
     let help = match expression {
         Expr::Index(_) => "indexing is not supported; use sequence equality",
@@ -98,7 +121,7 @@ fn unsupported_expression(expression: &Expr) -> syn::Error {
             "runtime control flow is not supported; express the claim with == or !="
         }
         Expr::Lit(_) => "expected a proposition, not a value; compare values with == or !=",
-        _ => "compare quantified variables with == or !=",
+        _ => "use supported symbolic variables, literals, and sequence operations",
     };
 
     syn::Error::new_spanned(
