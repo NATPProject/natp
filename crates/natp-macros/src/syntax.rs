@@ -4,6 +4,7 @@ use syn::{
     parse::{Parse, ParseStream},
 };
 
+// Mirrors the IR's quantifier limit without coupling this proc macro to a backend.
 enum MacroLimit {
     Variables,
 }
@@ -11,7 +12,7 @@ enum MacroLimit {
 impl MacroLimit {
     const fn value(self) -> usize {
         match self {
-            Self::Variables => 1,
+            Self::Variables => 8,
         }
     }
 }
@@ -74,7 +75,7 @@ impl Parse for ClaimInput {
         if variables.len() > MacroLimit::Variables.value() {
             return Err(input.error(diagnostic!(
                 MacroQuantifierLimit,
-                "one quantified variable is supported; found {}",
+                "at most eight quantified variables are supported; found {}",
                 variables.len()
             )));
         }
