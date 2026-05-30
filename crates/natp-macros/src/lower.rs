@@ -39,11 +39,16 @@ impl LoweringContext<'_> {
     fn lower_binary(&self, binary: &ExprBinary) -> syn::Result<Tokens> {
         match binary.op {
             BinOp::Eq(_) | BinOp::Ne(_) => self.lower_equality(binary),
+            BinOp::And(_) => {
+                let left = self.lower_proposition(&binary.left)?;
+                let right = self.lower_proposition(&binary.right)?;
+                Ok(quote!((#left).and(#right)))
+            }
             _ => Err(syn::Error::new_spanned(
                 binary.op,
                 diagnostic!(
                     UnsupportedOperator,
-                    "unsupported proposition operator; use ==, !=, or !",
+                    "unsupported proposition operator; use ==, !=, &&, or !",
                 ),
             )),
         }
@@ -151,7 +156,7 @@ fn unsupported_expression(expression: &Expr) -> syn::Error {
             normal closure to .claim(...) without claim!"
         }
         Expr::If(_) | Expr::Match(_) => {
-            "runtime control flow is not supported; use ! to negate a proposition"
+            "runtime control flow is not supported; combine propositions with && or !"
         }
         Expr::Lit(_) => "expected a proposition, not a value; compare values with == or !=",
         _ => "use supported symbolic variables, literals, and sequence operations",
