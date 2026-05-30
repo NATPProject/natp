@@ -26,6 +26,11 @@ impl LoweringContext<'_> {
             Expr::Lit(literal) if matches!(literal.lit, Lit::Bool(_)) => {
                 Ok(quote!(#root::Prop::Bool(#literal)))
             }
+            Expr::Unary(unary) if matches!(unary.op, UnOp::Not(_)) => {
+                let operand = self.lower_proposition(&unary.expr)?;
+
+                Ok(quote!(!(#operand)))
+            }
             Expr::Binary(binary) => self.lower_binary(binary),
             _ => Err(unsupported_expression(expression)),
         }
@@ -38,7 +43,7 @@ impl LoweringContext<'_> {
                 binary.op,
                 diagnostic!(
                     UnsupportedOperator,
-                    "unsupported proposition operator; use == or !=",
+                    "unsupported proposition operator; use ==, !=, or !",
                 ),
             )),
         }
@@ -146,7 +151,7 @@ fn unsupported_expression(expression: &Expr) -> syn::Error {
             normal closure to .claim(...) without claim!"
         }
         Expr::If(_) | Expr::Match(_) => {
-            "runtime control flow is not supported; express the claim with == or !="
+            "runtime control flow is not supported; use ! to negate a proposition"
         }
         Expr::Lit(_) => "expected a proposition, not a value; compare values with == or !=",
         _ => "use supported symbolic variables, literals, and sequence operations",
