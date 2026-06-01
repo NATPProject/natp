@@ -1,8 +1,12 @@
+mod call;
+
+use call::DslCall;
+pub(super) use call::Operation;
 use natp_diagnostics::diagnostic;
 use proc_macro2::TokenStream as Tokens;
 use quote::{quote, quote_spanned};
 use syn::spanned::Spanned;
-use syn::{BinOp, Expr, ExprBinary, Ident, Lit, Stmt, UnOp};
+use syn::{BinOp, Expr, ExprBinary, ExprCall, Ident, Lit, Stmt, UnOp};
 
 pub(super) fn lower_proposition(
     root: &Tokens,
@@ -32,6 +36,7 @@ impl LoweringContext<'_> {
                 Ok(quote!(!(#operand)))
             }
             Expr::Binary(binary) => self.lower_binary(binary),
+            Expr::Call(call) => self.lower_predicate_call(call),
             _ => Err(unsupported_expression(expression)),
         }
     }
@@ -83,12 +88,24 @@ impl LoweringContext<'_> {
         }
     }
 
+    fn lower_predicate_call(&self, call: &ExprCall) -> syn::Result<Tokens> {
+        self.lower_predicate(&DslCall::parse(call)?)
+    }
+
+    fn lower_predicate(&self, call: &DslCall<'_>) -> syn::Result<Tokens> {
+        Err(call.expected_proposition())
+    }
+
     fn lower_term(&self, expression: &Expr) -> syn::Result<Tokens> {
         let expression = ungroup_expression(expression)?;
+        let root = self.root;
 
         match expression {
             Expr::Path(path) if self.variables.iter().any(|name| path.path.is_ident(name)) => {
                 Ok(quote!(#path.clone()))
+            }
+            Expr::Path(path) if path.path.is_ident(Operation::Empty.spellings()[0]) => {
+                Ok(quote!(#root::Seq::empty()))
             }
             Expr::Path(path) => {
                 let available = self
@@ -118,7 +135,18 @@ impl LoweringContext<'_> {
                 Ok(quote!(#unary))
             }
             Expr::Binary(_) | Expr::Unary(_) => self.lower_proposition(expression),
+            Expr::Call(call) => self.lower_term_call(call),
             _ => Err(unsupported_expression(expression)),
+        }
+    }
+
+    fn lower_term_call(&self, call: &ExprCall) -> syn::Result<Tokens> {
+        let root = self.root;
+        let call = DslCall::parse(call)?;
+
+        match (call.operation(), call.arguments()) {
+            (Operation::Empty, []) => Ok(quote!(#root::Seq::empty())),
+            _ => self.lower_predicate(&call),
         }
     }
 }
@@ -157,7 +185,7 @@ fn unsupported_expression(expression: &Expr) -> syn::Error {
     let help = match expression {
         Expr::Index(_) => "indexing is not supported; use sequence equality",
         Expr::MethodCall(_) => {
-            "method calls are not supported inside claim!; for Rust symbolic methods, pass a \
+            "inside claim!, use DSL calls such as empty(); for Rust symbolic methods, pass a \
             normal closure to .claim(...) without claim!"
         }
         Expr::If(_) | Expr::Match(_) => {
