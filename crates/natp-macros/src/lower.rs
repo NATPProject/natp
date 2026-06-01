@@ -146,6 +146,11 @@ impl LoweringContext<'_> {
 
         match (call.operation(), call.arguments()) {
             (Operation::Empty, []) => Ok(quote!(#root::Seq::empty())),
+            (Operation::Reverse, [sequence]) => {
+                let sequence = self.lower_term(sequence)?;
+
+                Ok(quote!((#sequence).reversed()))
+            }
             _ => self.lower_predicate(&call),
         }
     }
@@ -185,7 +190,7 @@ fn unsupported_expression(expression: &Expr) -> syn::Error {
     let help = match expression {
         Expr::Index(_) => "indexing is not supported; use sequence equality",
         Expr::MethodCall(_) => {
-            "inside claim!, use DSL calls such as empty(); for Rust symbolic methods, pass a \
+            "inside claim!, use DSL calls such as reverse(xs); for Rust symbolic methods, pass a \
             normal closure to .claim(...) without claim!"
         }
         Expr::If(_) | Expr::Match(_) => {

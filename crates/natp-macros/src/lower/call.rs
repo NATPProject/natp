@@ -4,14 +4,16 @@ use syn::{Expr, ExprCall};
 #[derive(Clone, Copy)]
 pub(crate) enum Operation {
     Empty,
+    Reverse,
 }
 
 impl Operation {
-    const ALL: [Self; 1] = [Self::Empty];
+    const ALL: [Self; 2] = [Self::Empty, Self::Reverse];
 
     pub(super) fn spellings(self) -> &'static [&'static str] {
         match self {
             Self::Empty => &["empty"],
+            Self::Reverse => &["reverse"],
         }
     }
 
@@ -24,6 +26,7 @@ impl Operation {
     fn signature(self) -> (usize, &'static str) {
         match self {
             Self::Empty => (0, "empty()"),
+            Self::Reverse => (1, "reverse(xs)"),
         }
     }
 }
@@ -52,7 +55,7 @@ impl<'a> DslCall<'a> {
                 &expression.func,
                 diagnostic!(
                     UnknownOperation,
-                    "unknown symbolic operation '{name}'; supported calls: empty; runtime functions are not translated",
+                    "unknown symbolic operation '{name}'; supported calls: empty, reverse; runtime functions are not translated",
                 ),
             ));
         };
@@ -96,7 +99,7 @@ fn operation_name(call: &ExprCall) -> syn::Result<String> {
             &call.func,
             diagnostic!(
                 UnknownOperation,
-                "indirect calls are not supported; use a DSL name such as empty()",
+                "indirect calls are not supported; use a DSL name such as reverse(xs)",
             ),
         ));
     };
@@ -109,7 +112,7 @@ fn operation_name(call: &ExprCall) -> syn::Result<String> {
                 &path.path,
                 diagnostic!(
                     UnknownOperation,
-                    "qualified runtime calls are not translated; use a bare DSL name such as empty()",
+                    "qualified runtime calls are not translated; use a bare DSL name such as reverse(xs)",
                 ),
             )
         })
