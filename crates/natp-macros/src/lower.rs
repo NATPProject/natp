@@ -151,6 +151,12 @@ impl LoweringContext<'_> {
 
                 Ok(quote!((#sequence).reversed()))
             }
+            (Operation::Append, [left, right]) => {
+                let left = self.lower_term(left)?;
+                let right = self.lower_term(right)?;
+
+                Ok(quote!((#left).append(#right)))
+            }
             _ => self.lower_predicate(&call),
         }
     }

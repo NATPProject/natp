@@ -5,15 +5,17 @@ use syn::{Expr, ExprCall};
 pub(crate) enum Operation {
     Empty,
     Reverse,
+    Append,
 }
 
 impl Operation {
-    const ALL: [Self; 2] = [Self::Empty, Self::Reverse];
+    const ALL: [Self; 3] = [Self::Empty, Self::Reverse, Self::Append];
 
     pub(super) fn spellings(self) -> &'static [&'static str] {
         match self {
             Self::Empty => &["empty"],
             Self::Reverse => &["reverse"],
+            Self::Append => &["append"],
         }
     }
 
@@ -27,6 +29,7 @@ impl Operation {
         match self {
             Self::Empty => (0, "empty()"),
             Self::Reverse => (1, "reverse(xs)"),
+            Self::Append => (2, "append(xs, ys)"),
         }
     }
 }
@@ -55,7 +58,7 @@ impl<'a> DslCall<'a> {
                 &expression.func,
                 diagnostic!(
                     UnknownOperation,
-                    "unknown symbolic operation '{name}'; supported calls: empty, reverse; runtime functions are not translated",
+                    "unknown symbolic operation '{name}'; supported calls: empty, reverse, append; runtime functions are not translated",
                 ),
             ));
         };
