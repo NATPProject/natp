@@ -134,6 +134,12 @@ impl LoweringContext<'_> {
             {
                 Ok(quote!(#unary))
             }
+            Expr::Binary(binary) if matches!(binary.op, BinOp::Add(_)) => {
+                let left = self.lower_term(&binary.left)?;
+                let right = self.lower_term(&binary.right)?;
+
+                Ok(quote!((#left) + (#right)))
+            }
             Expr::Binary(_) | Expr::Unary(_) => self.lower_proposition(expression),
             Expr::Call(call) => self.lower_term_call(call),
             _ => Err(unsupported_expression(expression)),
