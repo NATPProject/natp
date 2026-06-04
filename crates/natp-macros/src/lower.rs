@@ -93,7 +93,14 @@ impl LoweringContext<'_> {
     }
 
     fn lower_predicate(&self, call: &DslCall<'_>) -> syn::Result<Tokens> {
-        Err(call.expected_proposition())
+        match (call.operation(), call.arguments()) {
+            (Operation::IsEmpty, [sequence]) => {
+                let sequence = self.lower_term(sequence)?;
+
+                Ok(quote!((#sequence).is_empty()))
+            }
+            _ => Err(call.expected_proposition()),
+        }
     }
 
     fn lower_term(&self, expression: &Expr) -> syn::Result<Tokens> {
