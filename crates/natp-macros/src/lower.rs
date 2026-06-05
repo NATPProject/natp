@@ -99,6 +99,12 @@ impl LoweringContext<'_> {
 
                 Ok(quote!((#sequence).is_empty()))
             }
+            (Operation::Contains, [sequence, element]) => {
+                let sequence = self.lower_term(sequence)?;
+                let element = self.lower_term(element)?;
+
+                Ok(quote!((#sequence).contains(#element)))
+            }
             _ => Err(call.expected_proposition()),
         }
     }

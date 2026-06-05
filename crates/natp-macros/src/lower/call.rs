@@ -8,15 +8,17 @@ pub(crate) enum Operation {
     Length,
     Append,
     IsEmpty,
+    Contains,
 }
 
 impl Operation {
-    const ALL: [Self; 5] = [
+    const ALL: [Self; 6] = [
         Self::Empty,
         Self::Reverse,
         Self::Length,
         Self::Append,
         Self::IsEmpty,
+        Self::Contains,
     ];
 
     pub(super) fn spellings(self) -> &'static [&'static str] {
@@ -26,6 +28,7 @@ impl Operation {
             Self::Length => &["length"],
             Self::Append => &["append"],
             Self::IsEmpty => &["is_empty"],
+            Self::Contains => &["contains"],
         }
     }
 
@@ -42,6 +45,7 @@ impl Operation {
             Self::Length => (1, "length(xs)"),
             Self::Append => (2, "append(xs, ys)"),
             Self::IsEmpty => (1, "is_empty(xs)"),
+            Self::Contains => (2, "contains(xs, x)"),
         }
     }
 }
@@ -70,7 +74,7 @@ impl<'a> DslCall<'a> {
                 &expression.func,
                 diagnostic!(
                     UnknownOperation,
-                    "unknown symbolic operation '{name}'; supported calls: empty, reverse, append, length, is_empty; runtime functions are not translated",
+                    "unknown symbolic operation '{name}'; supported calls: empty, reverse, append, length, is_empty, contains; runtime functions are not translated",
                 ),
             ));
         };
@@ -114,7 +118,7 @@ fn operation_name(call: &ExprCall) -> syn::Result<String> {
             &call.func,
             diagnostic!(
                 UnknownOperation,
-                "indirect calls are not supported; use a DSL name such as reverse(xs)",
+                "expected a named DSL operation such as contains(xs, x); indirect function calls are not supported",
             ),
         ));
     };
