@@ -184,14 +184,6 @@ impl LoweringContext<'_> {
             ));
         }
 
-        if !matches!(closure.body.as_ref(), Expr::Lit(literal) if matches!(literal.lit, Lit::Bool(_)))
-        {
-            return Err(syn::Error::new_spanned(
-                &closure.body,
-                diagnostic!(AllClosure, "all expects a Boolean literal predicate"),
-            ));
-        }
-
         let variable = &binding.ident;
         let mut variables = self.variables.to_vec();
         variables.push(variable.clone());
