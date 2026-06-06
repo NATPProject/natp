@@ -6,19 +6,31 @@ use natp_diagnostics::diagnostic;
 use proc_macro2::TokenStream as Tokens;
 use quote::{quote, quote_spanned};
 use syn::spanned::Spanned;
-use syn::{BinOp, Expr, ExprBinary, ExprCall, Ident, Lit, Stmt, UnOp};
+use syn::{BinOp, Expr, ExprBinary, ExprCall, Ident, Lit, Pat, Stmt, UnOp};
 
 pub(super) fn lower_proposition(
     root: &Tokens,
     variables: &[Ident],
     expression: &Expr,
 ) -> syn::Result<Tokens> {
-    LoweringContext { root, variables }.lower_proposition(expression)
+    LoweringContext {
+        root,
+        variables,
+        predicate_context: PredicateContext::Outer,
+    }
+    .lower_proposition(expression)
 }
 
 struct LoweringContext<'a> {
     root: &'a Tokens,
     variables: &'a [Ident],
+    predicate_context: PredicateContext,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum PredicateContext {
+    Outer,
+    Element,
 }
 
 impl LoweringContext<'_> {
@@ -105,8 +117,98 @@ impl LoweringContext<'_> {
 
                 Ok(quote!((#sequence).contains(#element)))
             }
+            (Operation::All, [sequence, predicate]) => self.all(sequence, predicate),
             _ => Err(call.expected_proposition()),
         }
+    }
+
+    fn all(&self, sequence: &Expr, predicate: &Expr) -> syn::Result<Tokens> {
+        if self.predicate_context == PredicateContext::Element {
+            return Err(syn::Error::new_spanned(
+                predicate,
+                diagnostic!(
+                    NestedAll,
+                    "nested all is not supported; use one element binder per predicate"
+                ),
+            ));
+        }
+
+        let sequence = self.lower_term(sequence)?;
+        let Expr::Closure(closure) = predicate else {
+            return Err(syn::Error::new_spanned(
+                predicate,
+                diagnostic!(
+                    AllClosure,
+                    "all expects an element closure, for example all(xs, |e| e != 0)"
+                ),
+            ));
+        };
+
+        if closure.inputs.len() != 1
+            || closure.asyncness.is_some()
+            || closure.constness.is_some()
+            || !matches!(closure.output, syn::ReturnType::Default)
+        {
+            return Err(syn::Error::new_spanned(
+                closure,
+                diagnostic!(
+                    AllClosure,
+                    "all expects exactly one plain parameter and an expression body: |e| e != 0; async, \
+                     const, and explicit return types are unsupported",
+                ),
+            ));
+        }
+
+        let Pat::Ident(binding) = &closure.inputs[0] else {
+            return Err(syn::Error::new_spanned(
+                &closure.inputs,
+                diagnostic!(
+                    AllClosure,
+                    "all requires a plain identifier such as |e|, not a pattern"
+                ),
+            ));
+        };
+
+        if binding.by_ref.is_some()
+            || binding.mutability.is_some()
+            || binding.subpat.is_some()
+            || self.variables.contains(&binding.ident)
+        {
+            return Err(syn::Error::new_spanned(
+                binding,
+                diagnostic!(
+                    ShadowedBinder,
+                    "all requires a fresh plain element variable; choose a name different from every \
+                     quantified variable, without mut, ref, or destructuring",
+                ),
+            ));
+        }
+
+        if !matches!(closure.body.as_ref(), Expr::Lit(literal) if matches!(literal.lit, Lit::Bool(_)))
+        {
+            return Err(syn::Error::new_spanned(
+                &closure.body,
+                diagnostic!(AllClosure, "all expects a Boolean literal predicate"),
+            ));
+        }
+
+        let variable = &binding.ident;
+        let mut variables = self.variables.to_vec();
+        variables.push(variable.clone());
+
+        let predicate = LoweringContext {
+            root: self.root,
+            variables: &variables,
+            predicate_context: PredicateContext::Element,
+        }
+        .lower_proposition(&closure.body)?;
+
+        Ok(quote! {
+            (#sequence).all(|#variable| {
+                let _ = &#variable;
+                #predicate
+            })
+        })
     }
 
     fn lower_term(&self, expression: &Expr) -> syn::Result<Tokens> {
@@ -218,7 +320,9 @@ fn is_literal(expression: &Expr) -> bool {
 
 fn unsupported_expression(expression: &Expr) -> syn::Error {
     let help = match expression {
-        Expr::Index(_) => "indexing is not supported; use sequence equality",
+        Expr::Index(_) => {
+            "indexing is not in this language; use contains, all, or sequence equality"
+        }
         Expr::MethodCall(_) => {
             "inside claim!, use DSL calls such as reverse(xs); for Rust symbolic methods, pass a \
             normal closure to .claim(...) without claim!"

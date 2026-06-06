@@ -9,16 +9,18 @@ pub(crate) enum Operation {
     Append,
     IsEmpty,
     Contains,
+    All,
 }
 
 impl Operation {
-    const ALL: [Self; 6] = [
+    const ALL: [Self; 7] = [
         Self::Empty,
         Self::Reverse,
         Self::Length,
         Self::Append,
         Self::IsEmpty,
         Self::Contains,
+        Self::All,
     ];
 
     pub(super) fn spellings(self) -> &'static [&'static str] {
@@ -29,6 +31,7 @@ impl Operation {
             Self::Append => &["append"],
             Self::IsEmpty => &["is_empty"],
             Self::Contains => &["contains"],
+            Self::All => &["all"],
         }
     }
 
@@ -46,6 +49,7 @@ impl Operation {
             Self::Append => (2, "append(xs, ys)"),
             Self::IsEmpty => (1, "is_empty(xs)"),
             Self::Contains => (2, "contains(xs, x)"),
+            Self::All => (2, "all(xs, |e| predicate)"),
         }
     }
 }
@@ -74,7 +78,7 @@ impl<'a> DslCall<'a> {
                 &expression.func,
                 diagnostic!(
                     UnknownOperation,
-                    "unknown symbolic operation '{name}'; supported calls: empty, reverse, append, length, is_empty, contains; runtime functions are not translated",
+                    "unknown symbolic operation '{name}'; supported calls: empty, reverse, append, length, is_empty, contains, all; runtime functions are not translated",
                 ),
             ));
         };
