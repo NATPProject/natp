@@ -1,5 +1,6 @@
 //! Restricted claim syntax lowered to NATP symbolic expressions.
 
+mod implication;
 mod lower;
 mod syntax;
 

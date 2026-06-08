@@ -1,3 +1,4 @@
+use crate::implication;
 use natp_diagnostics::diagnostic;
 use syn::{
     Expr, Ident, Token,
@@ -80,7 +81,7 @@ impl Parse for ClaimInput {
             )));
         }
 
-        let body = syn::parse2(input.parse()?).map_err(|error| {
+        let body = syn::parse2(implication::rewrite(input.parse()?)).map_err(|error| {
             syn::Error::new(
                 error.span(),
                 diagnostic!(

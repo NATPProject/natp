@@ -70,7 +70,7 @@ impl LoweringContext<'_> {
                 binary.op,
                 diagnostic!(
                     UnsupportedOperator,
-                    "unsupported proposition operator; use ==, !=, &&, ||, or !; ordering and element \
+                    "unsupported proposition operator; use ==, !=, &&, ||, !, or =>; ordering and element \
                      arithmetic are not supported",
                 ),
             )),
