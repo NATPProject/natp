@@ -70,7 +70,8 @@ impl LoweringContext<'_> {
                 binary.op,
                 diagnostic!(
                     UnsupportedOperator,
-                    "unsupported proposition operator; use ==, !=, &&, ||, or !",
+                    "unsupported proposition operator; use ==, !=, &&, ||, or !; ordering and element \
+                     arithmetic are not supported",
                 ),
             )),
         }
@@ -106,6 +107,12 @@ impl LoweringContext<'_> {
 
     fn lower_predicate(&self, call: &DslCall<'_>) -> syn::Result<Tokens> {
         match (call.operation(), call.arguments()) {
+            (Operation::Implies, [left, right]) => {
+                let left = self.lower_proposition(left)?;
+                let right = self.lower_proposition(right)?;
+
+                Ok(quote!((#left).implies(#right)))
+            }
             (Operation::IsEmpty, [sequence]) => {
                 let sequence = self.lower_term(sequence)?;
 
@@ -320,10 +327,13 @@ fn unsupported_expression(expression: &Expr) -> syn::Error {
             normal closure to .claim(...) without claim!"
         }
         Expr::If(_) | Expr::Match(_) => {
-            "runtime control flow is not supported; combine propositions with &&, ||, or !"
+            "runtime control flow is not translated; express the condition with implies(a, b), &&, or ||"
         }
         Expr::Lit(_) => "expected a proposition, not a value; compare values with == or !=",
-        _ => "use supported symbolic variables, literals, and sequence operations",
+        _ => {
+            "use the documented sequence DSL: equality, logical connectives, is_empty, contains, \
+            all, and length"
+        }
     };
 
     syn::Error::new_spanned(
