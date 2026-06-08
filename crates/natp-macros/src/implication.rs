@@ -25,11 +25,25 @@ pub(super) fn rewrite(tokens: TokenStream) -> TokenStream {
 /// Nested groups have already been rewritten, so revisiting an argument or
 /// implication tail does not repeatedly walk the same group tree.
 fn rewrite_level(items: &[TokenTree]) -> TokenStream {
-    if items.iter().any(|token| punctuation(token, ','))
-        || items.first().is_some_and(|token| punctuation(token, '|'))
-    {
-        return items.iter().cloned().collect();
+    if items.iter().any(|token| punctuation(token, ',')) {
+        return rewrite_arguments(items);
     }
+
+    // An all-predicate may use an unbraced implication as its closure body.
+    if items.first().is_some_and(|token| punctuation(token, '|')) {
+        if let Some(end) = items
+            .iter()
+            .enumerate()
+            .skip(1)
+            .find_map(|(index, token)| punctuation(token, '|').then_some(index))
+        {
+            let mut prefix: TokenStream = items[..=end].iter().cloned().collect();
+            prefix.extend(rewrite_level(&items[end + 1..]));
+
+            return prefix;
+        }
+    }
+
     if let Some(index) = items
         .windows(2)
         .position(|pair| punctuation(&pair[0], '=') && punctuation(&pair[1], '>'))
@@ -44,6 +58,23 @@ fn rewrite_level(items: &[TokenTree]) -> TokenStream {
     }
 
     items.iter().cloned().collect()
+}
+
+fn rewrite_arguments(items: &[TokenTree]) -> TokenStream {
+    let mut output = TokenStream::new();
+    let mut start = 0;
+
+    for (index, token) in items.iter().enumerate() {
+        if punctuation(token, ',') {
+            output.extend(rewrite_level(&items[start..index]));
+            output.extend([token.clone()]);
+            start = index + 1;
+        }
+    }
+
+    output.extend(rewrite_level(&items[start..]));
+
+    output
 }
 
 fn punctuation(token: &TokenTree, expected: char) -> bool {
