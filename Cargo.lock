@@ -152,6 +152,15 @@ name = "natp-diagnostics"
 version = "0.1.0"
 
 [[package]]
+name = "natp-kernel"
+version = "0.1.0"
+dependencies = [
+ "natp-core",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "natp-macros"
 version = "0.1.0"
 dependencies = [
