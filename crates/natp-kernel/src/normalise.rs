@@ -15,6 +15,10 @@ pub enum Atom {
     Empty(usize),
     /// Equality of canonical scalar terms.
     ElementEqual(ElemExpr, ElemExpr),
+    /// Membership in a sequence variable.
+    Contains(usize, ElemExpr),
+    /// A predicate holding for every element of a sequence variable.
+    All(usize, Box<Formula>),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
