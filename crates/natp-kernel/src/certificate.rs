@@ -44,6 +44,17 @@ pub fn check(theorem: &Theorem, certificate: &Certificate) -> Result<bool, Error
     Ok(check_evidence(theorem, certificate).is_ok())
 }
 
+/// Recheck a certificate and explain the first rejected evidence component.
+///
+/// # Errors
+/// Returns theorem validation errors or certificate diagnostics naming
+/// the mismatched field or invalid deduction branch. Acceptance is identical to [`check`].
+pub fn check_detailed(theorem: &Theorem, certificate: &Certificate) -> Result<(), Error> {
+    validate(theorem)?;
+
+    check_evidence(theorem, certificate)
+}
+
 fn check_evidence(theorem: &Theorem, certificate: &Certificate) -> Result<(), Error> {
     let rejected = |code, path, message| {
         Error::new(message).with_code(code).at(path).with_help(

@@ -8,7 +8,7 @@ mod trace;
 mod word;
 
 pub use boolean::BooleanProof;
-pub use certificate::{Certificate, check};
+pub use certificate::{Certificate, check, check_detailed};
 pub use linear::Linear;
 pub use normalise::{Atom, Formula};
 pub use word::Letter;
