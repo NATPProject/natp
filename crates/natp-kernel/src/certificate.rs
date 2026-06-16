@@ -1,9 +1,12 @@
-//! Independent certificate checking.
+//! Certificate storage and the trusted acceptance boundary.
 
 use crate::{Atom, BooleanProof, Formula, boolean, normalise};
-use natp_core::{Code, DiagnosticField};
-use natp_core::{Error, Scope, Theorem, Trace};
+use natp_core::{Code, DiagnosticField, limits::ResourceLimit};
+use natp_core::{Error, Scope, Theorem, Trace, storage};
 use serde::{Deserialize, Serialize};
+use std::path::Path;
+
+const MAX_CERTIFICATE_BYTES: usize = ResourceLimit::CertificateBytes.value();
 
 /// A proposed proof for a theorem. Call [`check`] before trusting loaded evidence.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -19,6 +22,19 @@ pub struct Certificate {
     pub atoms: Vec<Atom>,
     /// Classical case tree checked independently of proof search.
     pub deduction: BooleanProof,
+}
+
+impl Certificate {
+    /// Validate the certificate before writing it as JSON.
+    ///
+    /// # Errors
+    /// Returns an error for invalid evidence, oversized JSON, or failed atomic persistence.
+    pub fn save(&self, path: impl AsRef<Path>) -> Result<(), Error> {
+        check_detailed(&self.theorem, self)
+            .map_err(|error| error.context(format!("save {}", path.as_ref().display())))?;
+
+        storage::save_json(self, path.as_ref(), MAX_CERTIFICATE_BYTES)
+    }
 }
 
 pub(super) fn validate(theorem: &Theorem) -> Result<(), Error> {
