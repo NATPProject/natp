@@ -35,6 +35,14 @@ impl Certificate {
 
         storage::save_json(self, path.as_ref(), MAX_CERTIFICATE_BYTES)
     }
+
+    /// Read a certificate. Call [`check`] against the expected theorem before trusting it.
+    ///
+    /// # Errors
+    /// Returns an error for inaccessible, oversized, or malformed JSON input.
+    pub fn load(path: impl AsRef<Path>) -> Result<Self, Error> {
+        storage::load_json(path.as_ref(), MAX_CERTIFICATE_BYTES)
+    }
 }
 
 pub(super) fn validate(theorem: &Theorem) -> Result<(), Error> {
