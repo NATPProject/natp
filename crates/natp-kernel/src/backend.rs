@@ -1,5 +1,5 @@
-use crate::{boolean, certify, check};
-use natp_core::{Backend, Error, Method, Outcome, Report, Theorem};
+use crate::{boolean, certify, check, trace};
+use natp_core::{Backend, Error, Method, Outcome, Report, Theorem, Trace, TraceRule};
 
 /// Native backend: trusted normalisation followed by independent certificate checking.
 #[derive(Clone, Copy, Debug, Default)]
@@ -14,12 +14,22 @@ impl Backend for Kernel {
                 ));
             }
 
+            let trace = Trace {
+                rule: TraceRule::UniversalIntroduction.as_str().into(),
+                before: format!("{:?}", theorem.variables),
+                after: "unbounded theorem".into(),
+                premises: vec![
+                    certificate.normalization,
+                    trace::deduction(&certificate.deduction),
+                ],
+            };
+
             Ok(Report {
                 theorem: theorem.clone(),
                 method: Method::Kernel,
                 outcome: Outcome::Proven,
                 evidence: "rechecked normalisation and propositional deduction certificate".into(),
-                trace: None,
+                trace: Some(trace),
             })
         } else {
             Ok(Report {
