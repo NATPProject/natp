@@ -31,10 +31,16 @@ pub fn certify(theorem: &Theorem) -> Result<Option<Certificate>, Error> {
 }
 
 fn search(formula: &Formula, atoms: &[Atom], values: &mut Vec<bool>) -> Option<BooleanProof> {
+    match boolean::evaluate(formula, atoms, values) {
+        Some(true) => return Some(BooleanProof::True),
+        Some(false) => return None,
+        None => {}
+    }
+
     let atom = values.len();
-    if atom == atoms.len() {
-        return (boolean::evaluate(formula, atoms, values) == Some(true))
-            .then_some(BooleanProof::True);
+
+    if atom >= atoms.len() {
+        return None;
     }
 
     let on_false = search_branch(formula, atoms, values, false)?;
