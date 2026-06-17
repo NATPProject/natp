@@ -1,5 +1,6 @@
 //! Sequence normalisation and independently checked proof certificates.
 
+mod backend;
 mod boolean;
 mod certificate;
 mod linear;
@@ -8,6 +9,7 @@ mod search;
 mod trace;
 mod word;
 
+pub use backend::Kernel;
 pub use boolean::BooleanProof;
 pub use certificate::{Certificate, check, check_detailed};
 pub use linear::Linear;
