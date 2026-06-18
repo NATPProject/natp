@@ -1,4 +1,4 @@
-//! Finite verification resource limits.
+//! Finite-length verification with resource limits.
 
 mod configuration;
 
