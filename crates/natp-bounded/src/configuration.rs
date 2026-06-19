@@ -1,3 +1,5 @@
+use crate::policy::ResourcePolicy;
+
 /// Resource limits for native bounded verification.
 #[derive(Clone, Copy, Debug)]
 pub struct Bounded {
@@ -10,8 +12,8 @@ pub struct Bounded {
 impl Default for Bounded {
     fn default() -> Self {
         Self {
-            max_cases: 100_000,
-            max_work: 10_000_000,
+            max_cases: ResourcePolicy::Cases.limit(),
+            max_work: ResourcePolicy::Work.limit(),
         }
     }
 }
