@@ -1,7 +1,9 @@
-//! Budgeted Boolean scalar verification.
+//! Finite-length verification with resource limits.
 
 mod budget;
 mod configuration;
+mod input_variable;
+mod inputs;
 mod policy;
 mod runner;
 mod search;
