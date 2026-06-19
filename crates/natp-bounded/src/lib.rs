@@ -1,5 +1,6 @@
 //! Budgeted Boolean scalar verification.
 
+mod budget;
 mod configuration;
 mod policy;
 mod runner;
