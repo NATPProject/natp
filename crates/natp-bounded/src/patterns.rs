@@ -27,21 +27,37 @@ impl EqualityPatterns {
         }
     }
 
-    pub(super) fn candidate_values(&self, element: Element, used: usize) -> Vec<(Value, usize)> {
-        match element {
-            Element::Bool => vec![(Value::Bool(false), used), (Value::Bool(true), used)],
-            Element::I32 => {
-                let mut candidates: Vec<_> = self
-                    .constants
-                    .iter()
-                    .map(|&value| (Value::I32(value), used))
-                    .collect();
-                for (index, &value) in self.fresh.iter().enumerate().take(used + 1) {
-                    candidates.push((Value::I32(value), used.max(index + 1)));
+    /// Restricted-growth enumeration: reuse any known class or introduce one.
+    pub(super) fn candidate_values(
+        &self,
+        element: Element,
+        used: usize,
+    ) -> impl Iterator<Item = (Value, usize)> + '_ {
+        // Search consumes one candidate at a time and may stop on the first
+        // refutation. Avoid allocating a candidate list at every tree node.
+        let mut index = 0;
+
+        std::iter::from_fn(move || {
+            let candidate = match element {
+                Element::Bool if index < 2 => Some((Value::Bool(index == 1), used)),
+                Element::Bool => None,
+                Element::I32 if index < self.constants.len() => {
+                    Some((Value::I32(self.constants[index]), used))
                 }
-                candidates
-            }
-        }
+                Element::I32 => {
+                    let fresh_index = index - self.constants.len();
+
+                    self.fresh
+                        .get(fresh_index)
+                        .filter(|_| fresh_index <= used)
+                        .map(|&value| (Value::I32(value), used.max(fresh_index + 1)))
+                }
+            };
+
+            index += usize::from(candidate.is_some());
+
+            candidate
+        })
     }
 }
 
