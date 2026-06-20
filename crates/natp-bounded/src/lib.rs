@@ -4,6 +4,7 @@ mod budget;
 mod configuration;
 mod input_variable;
 mod inputs;
+mod patterns;
 mod policy;
 mod runner;
 mod search;

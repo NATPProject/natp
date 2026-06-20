@@ -33,6 +33,10 @@ impl InputLayout {
         self.elements.len()
     }
 
+    pub(super) fn element(&self, cell: usize) -> Element {
+        self.elements[cell]
+    }
+
     pub(super) fn zeroes(&self) -> Vec<Value> {
         self.elements
             .iter()

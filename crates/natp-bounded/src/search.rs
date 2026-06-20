@@ -1,7 +1,10 @@
 //! Enumerate sequence lengths and equality patterns within the work and case budgets.
 
 use crate::policy::{Exhaustion, ResourcePolicy};
-use crate::{Bounded, budget::SearchBudget, inputs::InputLayout, stop::SearchStop};
+use crate::{
+    Bounded, budget::SearchBudget, inputs::InputLayout, patterns::EqualityPatterns,
+    stop::SearchStop,
+};
 use natp_core::{Assignment, Domain, Element, ErrorKind, Theorem, Value};
 
 pub(super) struct BoundedSearch<'a> {
@@ -21,14 +24,23 @@ impl<'a> BoundedSearch<'a> {
         if self
             .theorem
             .variables
-            .iter()
-            .any(|domain| domain.element() != Element::Bool)
+            .contains(&Domain::Sequence(Element::I32))
+            || self
+                .theorem
+                .variables
+                .iter()
+                .filter(|domain| **domain == Domain::Scalar(Element::I32))
+                .count()
+                > 1
         {
             return Err(SearchStop::Exhausted(Exhaustion::Evaluation(
-                "integer equality patterns are not supported".into(),
+                "verification supports one integer scalar input".into(),
             )));
         }
-        self.visit_lengths(max_length, &mut Vec::new())
+        let patterns =
+            EqualityPatterns::new(&self.theorem.claim, ResourcePolicy::PatternCells.limit());
+
+        self.visit_lengths(max_length, &patterns, &mut Vec::new())
     }
 
     pub(super) fn completed_cases(&self) -> usize {
@@ -42,11 +54,12 @@ impl<'a> BoundedSearch<'a> {
     fn visit_lengths(
         &mut self,
         max_length: usize,
+        patterns: &EqualityPatterns,
         lengths: &mut Vec<usize>,
     ) -> Result<(), SearchStop> {
         self.budget.spend(1)?;
         let Some(domain) = self.theorem.variables.get(lengths.len()) else {
-            return self.check_lengths(lengths);
+            return self.check_lengths(lengths, patterns);
         };
 
         let range = match domain {
@@ -56,7 +69,7 @@ impl<'a> BoundedSearch<'a> {
 
         for length in range {
             lengths.push(length);
-            let result = self.visit_lengths(max_length, lengths);
+            let result = self.visit_lengths(max_length, patterns, lengths);
             lengths.pop();
             result?;
         }
@@ -64,20 +77,26 @@ impl<'a> BoundedSearch<'a> {
         Ok(())
     }
 
-    fn check_lengths(&mut self, lengths: &[usize]) -> Result<(), SearchStop> {
+    fn check_lengths(
+        &mut self,
+        lengths: &[usize],
+        patterns: &EqualityPatterns,
+    ) -> Result<(), SearchStop> {
         let inputs = InputLayout::new(&self.theorem.variables, lengths);
 
         if inputs.len() > ResourcePolicy::PatternCells.limit() {
             return Err(SearchStop::Exhausted(Exhaustion::PatternCells));
         }
 
-        self.visit_patterns(&inputs, 0, &mut inputs.zeroes())
+        self.visit_patterns(&inputs, patterns, 0, 0, &mut inputs.zeroes())
     }
 
     fn visit_patterns(
         &mut self,
         inputs: &InputLayout,
+        patterns: &EqualityPatterns,
         cell: usize,
+        used_classes: usize,
         values: &mut [Value],
     ) -> Result<(), SearchStop> {
         self.budget.spend(1)?;
@@ -86,9 +105,9 @@ impl<'a> BoundedSearch<'a> {
             return self.check_assignment(inputs.bind(values));
         }
 
-        for value in [false, true] {
-            values[cell] = Value::Bool(value);
-            self.visit_patterns(inputs, cell + 1, values)?;
+        for (value, next_used) in patterns.candidate_values(inputs.element(cell), used_classes) {
+            values[cell] = value;
+            self.visit_patterns(inputs, patterns, cell + 1, next_used, values)?;
         }
 
         Ok(())
