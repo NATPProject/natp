@@ -18,7 +18,7 @@ impl EqualityPatterns {
         // leaving enough representatives for every permitted input cell.
         let fresh = (i32::MIN..=i32::MAX)
             .filter(|value| !constants.contains(value))
-            .take(cells.min(1))
+            .take(cells)
             .collect();
 
         Self {

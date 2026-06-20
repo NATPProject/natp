@@ -5,7 +5,7 @@ use crate::{
     Bounded, budget::SearchBudget, inputs::InputLayout, patterns::EqualityPatterns,
     stop::SearchStop,
 };
-use natp_core::{Assignment, Domain, Element, ErrorKind, Theorem, Value};
+use natp_core::{Assignment, Domain, ErrorKind, Theorem, Value};
 
 pub(super) struct BoundedSearch<'a> {
     theorem: &'a Theorem,
@@ -21,22 +21,6 @@ impl<'a> BoundedSearch<'a> {
     }
 
     pub(super) fn verify(&mut self, max_length: usize) -> Result<(), SearchStop> {
-        if self
-            .theorem
-            .variables
-            .contains(&Domain::Sequence(Element::I32))
-            || self
-                .theorem
-                .variables
-                .iter()
-                .filter(|domain| **domain == Domain::Scalar(Element::I32))
-                .count()
-                > 1
-        {
-            return Err(SearchStop::Exhausted(Exhaustion::Evaluation(
-                "verification supports one integer scalar input".into(),
-            )));
-        }
         let patterns =
             EqualityPatterns::new(&self.theorem.claim, ResourcePolicy::PatternCells.limit());
 
