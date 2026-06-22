@@ -3,7 +3,7 @@
 use crate::policy::{Exhaustion, ResourcePolicy};
 use crate::{
     Bounded, budget::SearchBudget, inputs::InputLayout, patterns::EqualityPatterns,
-    stop::SearchStop,
+    stop::SearchStop, symbolic,
 };
 use natp_core::{Assignment, Domain, ErrorKind, Theorem, Value};
 
@@ -67,6 +67,10 @@ impl<'a> BoundedSearch<'a> {
         patterns: &EqualityPatterns,
     ) -> Result<(), SearchStop> {
         let inputs = InputLayout::new(&self.theorem.variables, lengths);
+
+        if symbolic::is_value_independent(&self.theorem.claim) {
+            return self.check_assignment(inputs.bind(&inputs.zeroes()));
+        }
 
         if inputs.len() > ResourcePolicy::PatternCells.limit() {
             return Err(SearchStop::Exhausted(Exhaustion::PatternCells));

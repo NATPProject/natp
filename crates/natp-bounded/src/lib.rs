@@ -9,5 +9,6 @@ mod policy;
 mod runner;
 mod search;
 mod stop;
+mod symbolic;
 
 pub use configuration::Bounded;
