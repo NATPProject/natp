@@ -2,6 +2,7 @@
 
 use crate::input_variable::InputVariable;
 use natp_core::{Assignment, Domain, Element, Value};
+use std::ops::Range;
 
 /// Scalar variables occupy one cell; sequences occupy their selected lengths.
 pub(super) struct InputLayout {
@@ -35,6 +36,10 @@ impl InputLayout {
 
     pub(super) fn element(&self, cell: usize) -> Element {
         self.elements[cell]
+    }
+
+    pub(super) fn positions(&self, variable: usize) -> Range<usize> {
+        self.variables[variable].positions()
     }
 
     pub(super) fn zeroes(&self) -> Vec<Value> {

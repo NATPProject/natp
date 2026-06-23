@@ -7,16 +7,19 @@ use natp_core::{Expr, Prop};
 /// This establishes arbitrary-value validity only for unconditional equality.
 pub(super) fn positions(
     expression: &Expr,
-    _inputs: &InputLayout,
+    inputs: &InputLayout,
     work: &mut usize,
 ) -> Result<Vec<usize>, SearchStop> {
     spend_work(work, 1)?;
 
     match expression {
         Expr::Empty(_) => Ok(Vec::new()),
-        Expr::Var(_) => Err(SearchStop::Failed(natp_core::Error::new(
-            "sequence variables are not supported symbolically",
-        ))),
+        Expr::Var(variable) => {
+            let positions = inputs.positions(*variable);
+            spend_work(work, positions.len())?;
+
+            Ok(positions.collect())
+        }
         Expr::Reverse(_) => Err(SearchStop::Failed(natp_core::Error::new(
             "sequence operation is not supported symbolically",
         ))),
@@ -39,5 +42,5 @@ pub(super) fn is_value_independent(proposition: &Prop) -> bool {
 }
 
 pub(super) fn supports(expression: &Expr) -> bool {
-    matches!(expression, Expr::Empty(_))
+    matches!(expression, Expr::Empty(_) | Expr::Var(_))
 }

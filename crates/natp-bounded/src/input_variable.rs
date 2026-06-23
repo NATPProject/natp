@@ -13,6 +13,10 @@ impl InputVariable {
         Self { domain, cells }
     }
 
+    pub(super) fn positions(&self) -> Range<usize> {
+        self.cells.clone()
+    }
+
     pub(super) fn bind(&self, values: &[Value]) -> Assignment {
         match self.domain {
             Domain::Scalar(_) => Assignment::Scalar(values[self.cells.start].clone()),

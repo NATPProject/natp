@@ -70,7 +70,7 @@ impl<'a> BoundedSearch<'a> {
 
         if let Prop::SeqEq(left, right) = &self.theorem.claim {
             if symbolic::supports(left) && symbolic::supports(right) {
-                return self.check_equality(&inputs, left, right);
+                return self.check_equality(&inputs, patterns, left, right);
             }
         }
 
@@ -88,6 +88,7 @@ impl<'a> BoundedSearch<'a> {
     fn check_equality(
         &mut self,
         inputs: &InputLayout,
+        patterns: &EqualityPatterns,
         left: &Expr,
         right: &Expr,
     ) -> Result<(), SearchStop> {
@@ -95,23 +96,14 @@ impl<'a> BoundedSearch<'a> {
         let left = symbolic::positions(left, inputs, self.budget.fuel())?;
         let right = symbolic::positions(right, inputs, self.budget.fuel())?;
 
-        if left == right {
+        if left.is_empty() && right.is_empty() {
             self.budget.record_case()?;
-
             return Ok(());
         }
-
-        // A length mismatch needs no special values. Otherwise two distinct
-        // values separate the input positions at the first differing output.
-        let mut values = inputs.zeroes();
-
-        if let Some((&different, _)) = left.iter().zip(&right).find(|(a, b)| a != b) {
-            values[different] = match values[different] {
-                Value::I32(_) => Value::I32(1),
-                Value::Bool(_) => Value::Bool(true),
-            };
+        if left.len() == right.len() {
+            return self.visit_patterns(inputs, patterns, 0, 0, &mut inputs.zeroes());
         }
-
+        let values = inputs.zeroes();
         match self.check_assignment(inputs.bind(&values)) {
             Ok(()) => Err(SearchStop::Failed(Error::with_kind(
                 ErrorKind::Internal,
