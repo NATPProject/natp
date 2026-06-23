@@ -5,7 +5,7 @@ use crate::{
     Bounded, budget::SearchBudget, inputs::InputLayout, patterns::EqualityPatterns,
     stop::SearchStop, symbolic,
 };
-use natp_core::{Assignment, Domain, ErrorKind, Theorem, Value};
+use natp_core::{Assignment, Domain, Error, ErrorKind, Expr, Prop, Theorem, Value};
 
 pub(super) struct BoundedSearch<'a> {
     theorem: &'a Theorem,
@@ -68,6 +68,12 @@ impl<'a> BoundedSearch<'a> {
     ) -> Result<(), SearchStop> {
         let inputs = InputLayout::new(&self.theorem.variables, lengths);
 
+        if let Prop::SeqEq(left, right) = &self.theorem.claim {
+            if symbolic::supports(left) && symbolic::supports(right) {
+                return self.check_equality(&inputs, left, right);
+            }
+        }
+
         if symbolic::is_value_independent(&self.theorem.claim) {
             return self.check_assignment(inputs.bind(&inputs.zeroes()));
         }
@@ -77,6 +83,42 @@ impl<'a> BoundedSearch<'a> {
         }
 
         self.visit_patterns(&inputs, patterns, 0, 0, &mut inputs.zeroes())
+    }
+
+    fn check_equality(
+        &mut self,
+        inputs: &InputLayout,
+        left: &Expr,
+        right: &Expr,
+    ) -> Result<(), SearchStop> {
+        self.budget.ensure_case()?;
+        let left = symbolic::positions(left, inputs, self.budget.fuel())?;
+        let right = symbolic::positions(right, inputs, self.budget.fuel())?;
+
+        if left == right {
+            self.budget.record_case()?;
+
+            return Ok(());
+        }
+
+        // A length mismatch needs no special values. Otherwise two distinct
+        // values separate the input positions at the first differing output.
+        let mut values = inputs.zeroes();
+
+        if let Some((&different, _)) = left.iter().zip(&right).find(|(a, b)| a != b) {
+            values[different] = match values[different] {
+                Value::I32(_) => Value::I32(1),
+                Value::Bool(_) => Value::Bool(true),
+            };
+        }
+
+        match self.check_assignment(inputs.bind(&values)) {
+            Ok(()) => Err(SearchStop::Failed(Error::with_kind(
+                ErrorKind::Internal,
+                "internal symbolic counterexample replay failed",
+            ))),
+            failure => failure,
+        }
     }
 
     fn visit_patterns(
