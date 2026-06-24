@@ -20,9 +20,12 @@ pub(super) fn positions(
 
             Ok(positions.collect())
         }
-        Expr::Reverse(_) => Err(SearchStop::Failed(natp_core::Error::new(
-            "sequence operation is not supported symbolically",
-        ))),
+        Expr::Reverse(sequence) => {
+            let mut positions = positions(sequence, inputs, work)?;
+            positions.reverse();
+
+            Ok(positions)
+        }
         Expr::Append(_, _) => Err(SearchStop::Failed(natp_core::Error::new(
             "sequence operation is not supported symbolically",
         ))),
@@ -42,5 +45,9 @@ pub(super) fn is_value_independent(proposition: &Prop) -> bool {
 }
 
 pub(super) fn supports(expression: &Expr) -> bool {
-    matches!(expression, Expr::Empty(_) | Expr::Var(_))
+    match expression {
+        Expr::Empty(_) | Expr::Var(_) => true,
+        Expr::Reverse(sequence) => supports(sequence),
+        _ => false,
+    }
 }
