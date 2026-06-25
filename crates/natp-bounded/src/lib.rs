@@ -1,4 +1,7 @@
-//! Finite-length verification with resource limits.
+//! Finite-length verification by equality-pattern enumeration.
+//!
+//! General propositions enumerate equality patterns, including aliases.
+//! Resource exhaustion is inconclusive; successful finite checks return Verified.
 
 mod budget;
 mod configuration;

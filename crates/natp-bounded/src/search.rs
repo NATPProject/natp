@@ -69,9 +69,7 @@ impl<'a> BoundedSearch<'a> {
         let inputs = InputLayout::new(&self.theorem.variables, lengths);
 
         if let Prop::SeqEq(left, right) = &self.theorem.claim {
-            if symbolic::supports(left) && symbolic::supports(right) {
-                return self.check_equality(&inputs, left, right);
-            }
+            return self.check_equality(&inputs, left, right);
         }
 
         if symbolic::is_value_independent(&self.theorem.claim) {
