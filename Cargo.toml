@@ -5,6 +5,7 @@ members = [
     "crates/natp-macros",
     "crates/natp-kernel",
     "crates/natp-bounded",
+    "crates/natp-smt",
 ]
 resolver = "3"
 

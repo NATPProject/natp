@@ -1,0 +1,14 @@
+[package]
+name = "natp-smt"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "SMT-LIB induction obligations and bounded solver execution for NATP"
+
+[dependencies]
+natp-core.workspace = true
+tempfile.workspace = true
+
+[lints]
+workspace = true
