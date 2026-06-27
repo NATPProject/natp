@@ -1,5 +1,5 @@
 //! SMT expression translation.
-use crate::vocabulary::Operator;
+use crate::vocabulary::{Operator, RuntimePolicy};
 use natp_core::{ElemExpr, Error, Prop, Theorem, Value};
 pub(super) struct Translator;
 impl Translator {
@@ -10,6 +10,11 @@ impl Translator {
         Ok(match expression {
             ElemExpr::Var(id) => bindings[*id].clone(),
             ElemExpr::Constant(Value::Bool(value)) => value.to_string(),
+            ElemExpr::Constant(Value::I32(value)) => format!(
+                "(_ bv{} {})",
+                *value as u32,
+                RuntimePolicy::ElementBits.number()
+            ),
             _ => {
                 return Err(Error::new(
                     "element expression is not supported by this SMT translator",
