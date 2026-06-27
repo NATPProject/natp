@@ -13,3 +13,8 @@
        {nil}
        ({app} ({rev} ({tail} {xs}))
                     ({cons} ({head} {xs}) {nil}))))
+
+({define_recursive} {len} (({xs} {list_sort})) {integer_sort}
+  ({ite} ((_ is {nil}) {xs})
+       0
+       ({add} 1 ({len} ({tail} {xs})))))

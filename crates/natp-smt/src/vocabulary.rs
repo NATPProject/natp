@@ -5,6 +5,7 @@ use std::time::Duration;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum Sort {
+    Integer,
     Boolean,
     BitVector32,
     List(Element),
@@ -26,6 +27,7 @@ impl Sort {
 
     pub(super) fn render(self) -> String {
         match self {
+            Self::Integer => "Int".into(),
             Self::Boolean => "Bool".into(),
             Self::BitVector32 => format!("(_ BitVec {})", RuntimePolicy::ElementBits.number()),
             Self::List(element) => format!("List{}", Self::suffix(element)),
@@ -43,6 +45,7 @@ impl Sort {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum Operator {
     Equal,
+    Add,
     Not,
     IfThenElse,
 }
@@ -50,6 +53,7 @@ impl Operator {
     pub(super) fn token(self) -> &'static str {
         match self {
             Self::Equal => "=",
+            Self::Add => "+",
             Self::Not => "not",
             Self::IfThenElse => "ite",
         }
@@ -109,6 +113,7 @@ pub(super) enum ListSymbol {
     Tail,
     Append,
     Reverse,
+    Length,
 }
 impl ListSymbol {
     pub(super) fn render(self, element: Element) -> String {
@@ -119,6 +124,7 @@ impl ListSymbol {
             Self::Tail => "tail",
             Self::Append => "app",
             Self::Reverse => "rev",
+            Self::Length => "len",
         };
 
         format!("{name}{}", Sort::suffix(element))
