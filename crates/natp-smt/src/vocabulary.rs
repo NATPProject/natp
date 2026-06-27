@@ -108,6 +108,7 @@ pub(super) enum ListSymbol {
     Head,
     Tail,
     Append,
+    Reverse,
 }
 impl ListSymbol {
     pub(super) fn render(self, element: Element) -> String {
@@ -117,6 +118,7 @@ impl ListSymbol {
             Self::Head => "head",
             Self::Tail => "tail",
             Self::Append => "app",
+            Self::Reverse => "rev",
         };
 
         format!("{name}{}", Sort::suffix(element))

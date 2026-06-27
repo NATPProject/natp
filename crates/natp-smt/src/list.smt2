@@ -7,3 +7,9 @@
   ({ite} ((_ is {nil}) {xs})
        {ys}
        ({cons} ({head} {xs}) ({app} ({tail} {xs}) {ys}))))
+
+({define_recursive} {rev} (({xs} {list_sort})) {list_sort}
+  ({ite} ((_ is {nil}) {xs})
+       {nil}
+       ({app} ({rev} ({tail} {xs}))
+                    ({cons} ({head} {xs}) {nil}))))

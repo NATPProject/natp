@@ -16,6 +16,7 @@ pub(super) fn generate() -> String {
             head = ListSymbol::Head.render(element),
             tail = ListSymbol::Tail.render(element),
             app = ListSymbol::Append.render(element),
+            rev = ListSymbol::Reverse.render(element),
             ite = Operator::IfThenElse.token(),
             xs = Binding::ListLeft.render(),
             ys = Binding::ListRight.render(),
