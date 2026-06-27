@@ -18,3 +18,8 @@
   ({ite} ((_ is {nil}) {xs})
        0
        ({add} 1 ({len} ({tail} {xs})))))
+
+({define_recursive} {mem} (({xs} {list_sort}) ({x} {element_sort})) {boolean_sort}
+  ({ite} ((_ is {nil}) {xs})
+       {false_value}
+       ({or} ({equal} ({head} {xs}) {x}) ({mem} ({tail} {xs}) {x}))))

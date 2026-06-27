@@ -1,6 +1,7 @@
-//! SMT expression translation.
+//! Translate supported theorem expressions into SMT-LIB.
 use crate::vocabulary::{Operator, RuntimePolicy};
 use natp_core::{ElemExpr, Error, Prop, Theorem, Value};
+
 pub(super) struct Translator;
 impl Translator {
     pub(super) fn new(_theorem: &Theorem) -> Self {
@@ -15,9 +16,10 @@ impl Translator {
                 *value as u32,
                 RuntimePolicy::ElementBits.number()
             ),
+
             _ => {
                 return Err(Error::new(
-                    "element expression is not supported by this SMT translator",
+                    "bound elements are not supported by this SMT translator",
                 ));
             }
         })
@@ -33,6 +35,7 @@ impl Translator {
                 self.element(left, bindings)?,
                 self.element(right, bindings)?,
             ]),
+
             _ => {
                 return Err(Error::new(
                     "proposition is not supported by this SMT translator",

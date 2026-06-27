@@ -47,6 +47,7 @@ pub(super) enum Operator {
     Equal,
     Add,
     Not,
+    Or,
     IfThenElse,
 }
 impl Operator {
@@ -55,6 +56,7 @@ impl Operator {
             Self::Equal => "=",
             Self::Add => "+",
             Self::Not => "not",
+            Self::Or => "or",
             Self::IfThenElse => "ite",
         }
     }
@@ -114,6 +116,7 @@ pub(super) enum ListSymbol {
     Append,
     Reverse,
     Length,
+    Membership,
 }
 impl ListSymbol {
     pub(super) fn render(self, element: Element) -> String {
@@ -125,6 +128,7 @@ impl ListSymbol {
             Self::Append => "app",
             Self::Reverse => "rev",
             Self::Length => "len",
+            Self::Membership => "mem",
         };
 
         format!("{name}{}", Sort::suffix(element))
@@ -136,6 +140,7 @@ pub(super) enum Binding {
     Quantified(usize),
     ListLeft,
     ListRight,
+    Member,
 }
 impl Binding {
     pub(super) fn render(self) -> String {
@@ -143,6 +148,7 @@ impl Binding {
             Self::Quantified(id) => format!("v{id}"),
             Self::ListLeft => "xs".into(),
             Self::ListRight => "ys".into(),
+            Self::Member => "x".into(),
         }
     }
 }
