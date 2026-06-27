@@ -1,6 +1,121 @@
-//! Solver defaults.
+//! SMT symbol spellings and solver policy.
 
+use natp_core::{Domain, Element};
 use std::time::Duration;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) enum Sort {
+    Boolean,
+    BitVector32,
+    List(Element),
+}
+impl Sort {
+    pub(super) fn element(element: Element) -> Self {
+        match element {
+            Element::I32 => Self::BitVector32,
+            Element::Bool => Self::Boolean,
+        }
+    }
+
+    pub(super) fn domain(domain: Domain) -> Self {
+        match domain {
+            Domain::Scalar(element) => Self::element(element),
+            Domain::Sequence(element) => Self::List(element),
+        }
+    }
+
+    pub(super) fn render(self) -> String {
+        match self {
+            Self::Boolean => "Bool".into(),
+            Self::BitVector32 => format!("(_ BitVec {})", RuntimePolicy::ElementBits.number()),
+            Self::List(element) => format!("List{}", Self::suffix(element)),
+        }
+    }
+
+    pub(super) fn suffix(element: Element) -> &'static str {
+        match element {
+            Element::I32 => "I",
+            Element::Bool => "B",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) enum Operator {
+    Not,
+}
+impl Operator {
+    pub(super) fn token(self) -> &'static str {
+        match self {
+            Self::Not => "not",
+        }
+    }
+
+    pub(super) fn apply(self, operands: &[String]) -> String {
+        format!("({} {})", self.token(), operands.join(" "))
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) enum SmtCommand {
+    SetLogic,
+    DeclareConstant,
+    Assert,
+    CheckSat,
+}
+impl SmtCommand {
+    pub(super) fn token(self) -> &'static str {
+        match self {
+            Self::SetLogic => "set-logic",
+            Self::DeclareConstant => "declare-const",
+            Self::Assert => "assert",
+            Self::CheckSat => "check-sat",
+        }
+    }
+
+    pub(super) fn render(self, operands: &[String]) -> String {
+        if operands.is_empty() {
+            format!("({})\n", self.token())
+        } else {
+            format!("({} {})\n", self.token(), operands.join(" "))
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) enum Logic {
+    All,
+}
+impl Logic {
+    pub(super) fn token(self) -> &'static str {
+        match self {
+            Self::All => "ALL",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) enum Binding {
+    Quantified(usize),
+}
+impl Binding {
+    pub(super) fn render(self) -> String {
+        match self {
+            Self::Quantified(id) => format!("v{id}"),
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) enum ObligationKind {
+    Direct,
+}
+impl ObligationKind {
+    pub(super) fn name(self) -> &'static str {
+        match self {
+            Self::Direct => "direct",
+        }
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum SolverSetting {
@@ -16,11 +131,13 @@ impl SolverSetting {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum RuntimePolicy {
     TimeoutSeconds,
+    ElementBits,
 }
 impl RuntimePolicy {
     pub(super) fn number(self) -> usize {
         match self {
             Self::TimeoutSeconds => 10,
+            Self::ElementBits => 32,
         }
     }
 
