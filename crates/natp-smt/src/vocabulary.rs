@@ -42,11 +42,13 @@ impl Sort {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum Operator {
+    Equal,
     Not,
 }
 impl Operator {
     pub(super) fn token(self) -> &'static str {
         match self {
+            Self::Equal => "=",
             Self::Not => "not",
         }
     }

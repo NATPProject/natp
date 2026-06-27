@@ -1,17 +1,32 @@
 //! SMT expression translation.
-use natp_core::{Error, Prop, Theorem};
+use crate::vocabulary::Operator;
+use natp_core::{ElemExpr, Error, Prop, Theorem};
 pub(super) struct Translator;
 impl Translator {
     pub(super) fn new(_theorem: &Theorem) -> Self {
         Self
     }
+    fn element(&self, expression: &ElemExpr, bindings: &[String]) -> Result<String, Error> {
+        Ok(match expression {
+            ElemExpr::Var(id) => bindings[*id].clone(),
+            _ => {
+                return Err(Error::new(
+                    "element expression is not supported by this SMT translator",
+                ));
+            }
+        })
+    }
     pub(super) fn translate_proposition(
         &self,
         proposition: &Prop,
-        _bindings: &[String],
+        bindings: &[String],
     ) -> Result<String, Error> {
         Ok(match proposition {
             Prop::Bool(value) => value.to_string(),
+            Prop::ElemEq(left, right) => Operator::Equal.apply(&[
+                self.element(left, bindings)?,
+                self.element(right, bindings)?,
+            ]),
             _ => {
                 return Err(Error::new(
                     "proposition is not supported by this SMT translator",
