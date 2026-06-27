@@ -61,6 +61,7 @@ impl Operator {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum SmtCommand {
     SetLogic,
+    DeclareDatatype,
     DeclareConstant,
     Assert,
     CheckSat,
@@ -69,6 +70,7 @@ impl SmtCommand {
     pub(super) fn token(self) -> &'static str {
         match self {
             Self::SetLogic => "set-logic",
+            Self::DeclareDatatype => "declare-datatype",
             Self::DeclareConstant => "declare-const",
             Self::Assert => "assert",
             Self::CheckSat => "check-sat",
@@ -92,6 +94,26 @@ impl Logic {
         match self {
             Self::All => "ALL",
         }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) enum ListSymbol {
+    Empty,
+    Cons,
+    Head,
+    Tail,
+}
+impl ListSymbol {
+    pub(super) fn render(self, element: Element) -> String {
+        let name = match self {
+            Self::Empty => "nil",
+            Self::Cons => "cons",
+            Self::Head => "head",
+            Self::Tail => "tail",
+        };
+
+        format!("{name}{}", Sort::suffix(element))
     }
 }
 
