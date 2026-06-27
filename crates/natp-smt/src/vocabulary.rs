@@ -44,12 +44,14 @@ impl Sort {
 pub(super) enum Operator {
     Equal,
     Not,
+    IfThenElse,
 }
 impl Operator {
     pub(super) fn token(self) -> &'static str {
         match self {
             Self::Equal => "=",
             Self::Not => "not",
+            Self::IfThenElse => "ite",
         }
     }
 
@@ -63,6 +65,7 @@ pub(super) enum SmtCommand {
     SetLogic,
     DeclareDatatype,
     DeclareConstant,
+    DefineRecursiveFunction,
     Assert,
     CheckSat,
 }
@@ -72,6 +75,7 @@ impl SmtCommand {
             Self::SetLogic => "set-logic",
             Self::DeclareDatatype => "declare-datatype",
             Self::DeclareConstant => "declare-const",
+            Self::DefineRecursiveFunction => "define-fun-rec",
             Self::Assert => "assert",
             Self::CheckSat => "check-sat",
         }
@@ -103,6 +107,7 @@ pub(super) enum ListSymbol {
     Cons,
     Head,
     Tail,
+    Append,
 }
 impl ListSymbol {
     pub(super) fn render(self, element: Element) -> String {
@@ -111,6 +116,7 @@ impl ListSymbol {
             Self::Cons => "cons",
             Self::Head => "head",
             Self::Tail => "tail",
+            Self::Append => "app",
         };
 
         format!("{name}{}", Sort::suffix(element))
@@ -120,11 +126,15 @@ impl ListSymbol {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum Binding {
     Quantified(usize),
+    ListLeft,
+    ListRight,
 }
 impl Binding {
     pub(super) fn render(self) -> String {
         match self {
             Self::Quantified(id) => format!("v{id}"),
+            Self::ListLeft => "xs".into(),
+            Self::ListRight => "ys".into(),
         }
     }
 }

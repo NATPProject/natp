@@ -1,6 +1,6 @@
 //! Recursive list definitions instantiated from the typed solver vocabulary.
 
-use crate::vocabulary::{ListSymbol, Logic, SmtCommand, Sort};
+use crate::vocabulary::{Binding, ListSymbol, Logic, Operator, SmtCommand, Sort};
 use natp_core::Element;
 
 pub(super) fn generate() -> String {
@@ -15,7 +15,12 @@ pub(super) fn generate() -> String {
             cons = ListSymbol::Cons.render(element),
             head = ListSymbol::Head.render(element),
             tail = ListSymbol::Tail.render(element),
+            app = ListSymbol::Append.render(element),
+            ite = Operator::IfThenElse.token(),
+            xs = Binding::ListLeft.render(),
+            ys = Binding::ListRight.render(),
             declare_datatype = SmtCommand::DeclareDatatype.token(),
+            define_recursive = SmtCommand::DefineRecursiveFunction.token(),
         ));
     }
 
