@@ -133,11 +133,17 @@ impl ListSymbol {
 
         format!("{name}{}", Sort::suffix(element))
     }
+
+    pub(super) fn apply(self, element: Element, operands: &[String]) -> String {
+        format!("({} {})", self.render(element), operands.join(" "))
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum Binding {
     Quantified(usize),
+    Head,
+    Tail,
     ListLeft,
     ListRight,
     Member,
@@ -146,6 +152,8 @@ impl Binding {
     pub(super) fn render(self) -> String {
         match self {
             Self::Quantified(id) => format!("v{id}"),
+            Self::Head => "h".into(),
+            Self::Tail => "t".into(),
             Self::ListLeft => "xs".into(),
             Self::ListRight => "ys".into(),
             Self::Member => "x".into(),
@@ -155,11 +163,15 @@ impl Binding {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum ObligationKind {
+    Base,
+    Step,
     Direct,
 }
 impl ObligationKind {
     pub(super) fn name(self) -> &'static str {
         match self {
+            Self::Base => "base",
+            Self::Step => "step",
             Self::Direct => "direct",
         }
     }
