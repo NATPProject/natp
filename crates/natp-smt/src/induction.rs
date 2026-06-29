@@ -2,10 +2,10 @@
 
 use crate::Obligation;
 
-/// Induction on one sequence with all other quantified inputs left arbitrary.
+/// SMT queries with an optional induction variable.
 #[derive(Clone, Debug)]
 pub struct Induction {
-    /// The quantified variable selected for induction, or None for a scalar-only claim.
+    /// The quantified variable selected for induction, if any.
     pub variable: Option<usize>,
     /// Every query must succeed independently before accepting SMT validation.
     pub obligations: Vec<Obligation>,

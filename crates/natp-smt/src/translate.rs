@@ -1,11 +1,32 @@
-//! Translate supported theorem expressions into SMT-LIB.
-use crate::vocabulary::{Operator, RuntimePolicy};
-use natp_core::{ElemExpr, Error, Prop, Theorem, Value};
-
-pub(super) struct Translator;
-impl Translator {
-    pub(super) fn new(_theorem: &Theorem) -> Self {
-        Self
+//! SMT expression translation.
+use crate::vocabulary::{ListSymbol, Operator, RuntimePolicy};
+use natp_core::{ElemExpr, Element, Error, Expr, Prop, Theorem, Value};
+pub(super) struct Translator<'a> {
+    theorem: &'a Theorem,
+}
+impl<'a> Translator<'a> {
+    pub(super) fn new(theorem: &'a Theorem) -> Self {
+        Self { theorem }
+    }
+    fn element_sort(&self, expression: &Expr) -> Element {
+        match expression {
+            Expr::Empty(element) => *element,
+            Expr::Var(id) => self.theorem.variables[*id].element(),
+            Expr::Reverse(value) => self.element_sort(value),
+            Expr::Append(left, _) => self.element_sort(left),
+        }
+    }
+    fn sequence(&self, expression: &Expr, bindings: &[String]) -> Result<String, Error> {
+        let element = self.element_sort(expression);
+        Ok(match expression {
+            Expr::Empty(_) => ListSymbol::Empty.render(element),
+            Expr::Var(id) => bindings[*id].clone(),
+            _ => {
+                return Err(Error::new(
+                    "sequence expression is not supported by this SMT translator",
+                ));
+            }
+        })
     }
     fn element(&self, expression: &ElemExpr, bindings: &[String]) -> Result<String, Error> {
         Ok(match expression {
@@ -16,10 +37,9 @@ impl Translator {
                 *value as u32,
                 RuntimePolicy::ElementBits.number()
             ),
-
             _ => {
                 return Err(Error::new(
-                    "bound elements are not supported by this SMT translator",
+                    "element expression is not supported by this SMT translator",
                 ));
             }
         })
@@ -35,7 +55,10 @@ impl Translator {
                 self.element(left, bindings)?,
                 self.element(right, bindings)?,
             ]),
-
+            Prop::SeqEq(left, right) => Operator::Equal.apply(&[
+                self.sequence(left, bindings)?,
+                self.sequence(right, bindings)?,
+            ]),
             _ => {
                 return Err(Error::new(
                     "proposition is not supported by this SMT translator",

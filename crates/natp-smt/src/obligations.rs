@@ -1,8 +1,8 @@
 //! Generate direct scalar obligations.
 use crate::vocabulary::{Binding, ObligationKind, Operator, SmtCommand, Sort};
 use crate::{Induction, Obligation, prelude, translate::Translator};
-use natp_core::{Domain, Error, Scope, Theorem};
-/// Negate a validated, unbounded scalar claim.
+use natp_core::{Error, Scope, Theorem};
+/// Negate a validated, unbounded claim.
 ///
 /// # Errors
 /// Returns errors for invalid theorems or unsupported scopes, domains, or expressions.
@@ -10,13 +10,6 @@ pub fn induction(theorem: &Theorem) -> Result<Induction, Error> {
     theorem.validate()?;
     if theorem.scope != Scope::Unbounded {
         return Err(Error::new("SMT induction requires unbounded scope"));
-    }
-    if theorem
-        .variables
-        .iter()
-        .any(|domain| matches!(domain, Domain::Sequence(_)))
-    {
-        return Err(Error::new("sequence induction is not supported"));
     }
     let bindings: Vec<_> = (0..theorem.variables.len())
         .map(|id| Binding::Quantified(id).render())
