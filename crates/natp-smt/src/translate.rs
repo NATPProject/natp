@@ -22,6 +22,13 @@ impl<'a> Translator<'a> {
         Ok(match expression {
             Expr::Empty(_) => ListSymbol::Empty.render(element),
             Expr::Var(id) => bindings[*id].clone(),
+            Expr::Append(left, right) => ListSymbol::Append.apply(
+                element,
+                &[
+                    self.sequence(left, bindings)?,
+                    self.sequence(right, bindings)?,
+                ],
+            ),
             _ => {
                 return Err(Error::new(
                     "sequence expression is not supported by this SMT translator",
