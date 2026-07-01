@@ -29,10 +29,8 @@ impl<'a> Translator<'a> {
                     self.sequence(right, bindings)?,
                 ],
             ),
-            _ => {
-                return Err(Error::new(
-                    "sequence expression is not supported by this SMT translator",
-                ));
+            Expr::Reverse(sequence) => {
+                ListSymbol::Reverse.apply(element, &[self.sequence(sequence, bindings)?])
             }
         })
     }
