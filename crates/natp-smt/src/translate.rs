@@ -1,7 +1,6 @@
-//! Translate supported theorem expressions into SMT-LIB.
+//! SMT expression translation.
 use crate::vocabulary::{ListSymbol, Operator, RuntimePolicy};
 use natp_core::{ElemExpr, Element, Error, Expr, NatExpr, Prop, Theorem, Value};
-
 pub(super) struct Translator<'a> {
     theorem: &'a Theorem,
 }
@@ -9,16 +8,16 @@ impl<'a> Translator<'a> {
     pub(super) fn new(theorem: &'a Theorem) -> Self {
         Self { theorem }
     }
-    fn sequence_element_sort(&self, expression: &Expr) -> Element {
+    fn element_sort(&self, expression: &Expr) -> Element {
         match expression {
             Expr::Empty(element) => *element,
             Expr::Var(id) => self.theorem.variables[*id].element(),
-            Expr::Reverse(sequence) => self.sequence_element_sort(sequence),
-            Expr::Append(left, _) => self.sequence_element_sort(left),
+            Expr::Reverse(value) => self.element_sort(value),
+            Expr::Append(left, _) => self.element_sort(left),
         }
     }
     fn sequence(&self, expression: &Expr, bindings: &[String]) -> Result<String, Error> {
-        let element = self.sequence_element_sort(expression);
+        let element = self.element_sort(expression);
         Ok(match expression {
             Expr::Empty(_) => ListSymbol::Empty.render(element),
             Expr::Var(id) => bindings[*id].clone(),
@@ -29,8 +28,8 @@ impl<'a> Translator<'a> {
                     self.sequence(right, bindings)?,
                 ],
             ),
-            Expr::Reverse(sequence) => {
-                ListSymbol::Reverse.apply(element, &[self.sequence(sequence, bindings)?])
+            Expr::Reverse(value) => {
+                ListSymbol::Reverse.apply(element, &[self.sequence(value, bindings)?])
             }
         })
     }
@@ -43,10 +42,9 @@ impl<'a> Translator<'a> {
                 *value as u32,
                 RuntimePolicy::ElementBits.number()
             ),
-
             _ => {
                 return Err(Error::new(
-                    "bound elements are not supported by this SMT translator",
+                    "element expression is not supported by this SMT translator",
                 ));
             }
         })
@@ -55,7 +53,7 @@ impl<'a> Translator<'a> {
         Ok(match expression {
             NatExpr::Constant(value) => value.to_string(),
             NatExpr::Length(sequence) => ListSymbol::Length.apply(
-                self.sequence_element_sort(sequence),
+                self.element_sort(sequence),
                 &[self.sequence(sequence, bindings)?],
             ),
             NatExpr::Add(left, right) => Operator::Add.apply(&[
@@ -83,6 +81,10 @@ impl<'a> Translator<'a> {
                 self.natural(left, bindings)?,
                 self.natural(right, bindings)?,
             ]),
+            Prop::IsEmpty(sequence) => ListSymbol::is_empty(
+                self.element_sort(sequence),
+                &self.sequence(sequence, bindings)?,
+            ),
             _ => {
                 return Err(Error::new(
                     "proposition is not supported by this SMT translator",

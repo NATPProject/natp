@@ -137,6 +137,10 @@ impl ListSymbol {
     pub(super) fn apply(self, element: Element, operands: &[String]) -> String {
         format!("({} {})", self.render(element), operands.join(" "))
     }
+
+    pub(super) fn is_empty(element: Element, sequence: &str) -> String {
+        format!("((_ is {}) {sequence})", Self::Empty.render(element))
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
