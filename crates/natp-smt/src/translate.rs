@@ -1,5 +1,5 @@
 //! Translate supported theorem expressions into SMT-LIB.
-use crate::vocabulary::{ListSymbol, Operator, RuntimePolicy};
+use crate::vocabulary::{Binding, ListSymbol, Operator, RuntimePolicy, Sort};
 use natp_core::{ElemExpr, Element, Error, Expr, NatExpr, Prop, Theorem, Value};
 
 pub(super) struct Translator<'a> {
@@ -43,12 +43,7 @@ impl<'a> Translator<'a> {
                 *value as u32,
                 RuntimePolicy::ElementBits.number()
             ),
-
-            _ => {
-                return Err(Error::new(
-                    "bound elements are not supported by this SMT translator",
-                ));
-            }
+            ElemExpr::Bound => Binding::BoundElement.render(),
         })
     }
     fn natural(&self, expression: &NatExpr, bindings: &[String]) -> Result<String, Error> {
@@ -94,6 +89,21 @@ impl<'a> Translator<'a> {
                     self.element(element, bindings)?,
                 ],
             ),
+            Prop::All(sequence, predicate) => {
+                let element = self.sequence_element_sort(sequence);
+                let bound = Binding::BoundElement.render();
+                let member = ListSymbol::Membership.apply(
+                    element,
+                    &[self.sequence(sequence, bindings)?, bound.clone()],
+                );
+                let implication = Operator::Implies
+                    .apply(&[member, self.translate_proposition(predicate, bindings)?]);
+                format!(
+                    "({} (({bound} {})) {implication})",
+                    Operator::ForAll.token(),
+                    Sort::element(element).render()
+                )
+            }
             _ => {
                 return Err(Error::new(
                     "proposition is not supported by this SMT translator",

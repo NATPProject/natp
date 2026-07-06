@@ -48,6 +48,8 @@ pub(super) enum Operator {
     Add,
     Not,
     Or,
+    Implies,
+    ForAll,
     IfThenElse,
 }
 impl Operator {
@@ -57,6 +59,8 @@ impl Operator {
             Self::Add => "+",
             Self::Not => "not",
             Self::Or => "or",
+            Self::Implies => "=>",
+            Self::ForAll => "forall",
             Self::IfThenElse => "ite",
         }
     }
@@ -148,6 +152,7 @@ pub(super) enum Binding {
     Quantified(usize),
     Head,
     Tail,
+    BoundElement,
     ListLeft,
     ListRight,
     Member,
@@ -158,6 +163,7 @@ impl Binding {
             Self::Quantified(id) => format!("v{id}"),
             Self::Head => "h".into(),
             Self::Tail => "t".into(),
+            Self::BoundElement => "bound".into(),
             Self::ListLeft => "xs".into(),
             Self::ListRight => "ys".into(),
             Self::Member => "x".into(),
