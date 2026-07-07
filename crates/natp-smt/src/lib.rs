@@ -1,4 +1,4 @@
-//! SMT-LIB obligations and external solver execution.
+//! SMT query data and solver configuration.
 
 mod configuration;
 mod induction;
