@@ -7,7 +7,7 @@ use natp_core::{Domain, Error, Scope, Theorem};
 /// Choose the first sequence for induction, or a direct query for scalar-only claims.
 ///
 /// # Errors
-/// Returns errors for invalid theorems, bounded scope, or unsupported expressions.
+/// Returns validation errors for malformed or bounded theorems.
 pub fn induction(theorem: &Theorem) -> Result<Induction, Error> {
     theorem.validate()?;
 
