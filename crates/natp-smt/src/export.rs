@@ -32,5 +32,7 @@ pub fn write_obligations(theorem: &Theorem, path: impl AsRef<Path>) -> Result<()
         write_obligation(&obligation, path)?;
     }
 
+    theorem.save(path.join(OutputFile::Theorem.name("")))?;
+
     Ok(())
 }

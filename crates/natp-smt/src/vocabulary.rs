@@ -221,11 +221,13 @@ impl RuntimePolicy {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum OutputFile {
     Obligation,
+    Theorem,
 }
 impl OutputFile {
     pub(super) fn name(self, role: &str) -> String {
         match self {
             Self::Obligation => format!("{role}.smt2"),
+            Self::Theorem => "theorem.json".into(),
         }
     }
 }
