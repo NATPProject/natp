@@ -24,10 +24,9 @@ pub fn induction(theorem: &Theorem) -> Result<Induction, Error> {
         .collect();
     let prelude = declare_parameters(theorem, variable);
     let obligations = match variable {
-        Some(variable) => sequence_cases(theorem, &bindings, &prelude, variable)?,
+        Some(variable) => sequence_cases(theorem, &bindings, &prelude, variable),
         None => {
-            let claim =
-                Translator::new(theorem).translate_proposition(&theorem.claim, &bindings)?;
+            let claim = Translator::new(theorem).translate_proposition(&theorem.claim, &bindings);
 
             vec![Obligation {
                 name: ObligationKind::Direct.name().into(),
@@ -67,7 +66,7 @@ fn sequence_cases(
     bindings: &[String],
     prelude: &str,
     variable: usize,
-) -> Result<Vec<Obligation>, Error> {
+) -> Vec<Obligation> {
     let translator = Translator::new(theorem);
     let element = theorem.variables[variable].element();
     let head = Binding::Head.render();
@@ -75,15 +74,15 @@ fn sequence_cases(
 
     let mut substituted = bindings.to_vec();
     substituted[variable] = ListSymbol::Empty.render(element);
-    let base = translator.translate_proposition(&theorem.claim, &substituted)?;
+    let base = translator.translate_proposition(&theorem.claim, &substituted);
 
     substituted[variable] = tail.clone();
-    let hypothesis = translator.translate_proposition(&theorem.claim, &substituted)?;
+    let hypothesis = translator.translate_proposition(&theorem.claim, &substituted);
 
     substituted[variable] = ListSymbol::Cons.apply(element, &[head.clone(), tail.clone()]);
-    let conclusion = translator.translate_proposition(&theorem.claim, &substituted)?;
+    let conclusion = translator.translate_proposition(&theorem.claim, &substituted);
 
-    Ok(vec![
+    vec![
         Obligation {
             name: ObligationKind::Base.name().into(),
             source: format!(
@@ -103,5 +102,5 @@ fn sequence_cases(
                 SmtCommand::CheckSat.render(&[]),
             ),
         },
-    ])
+    ]
 }
