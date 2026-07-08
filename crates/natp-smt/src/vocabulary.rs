@@ -217,3 +217,15 @@ impl RuntimePolicy {
         Duration::from_secs(Self::TimeoutSeconds.number() as u64)
     }
 }
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) enum OutputFile {
+    Obligation,
+}
+impl OutputFile {
+    pub(super) fn name(self, role: &str) -> String {
+        match self {
+            Self::Obligation => format!("{role}.smt2"),
+        }
+    }
+}
