@@ -192,11 +192,13 @@ impl ObligationKind {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum SolverSetting {
     Executable,
+    SmtInputFlag,
 }
 impl SolverSetting {
     pub(super) fn text(self) -> &'static str {
         match self {
             Self::Executable => "z3",
+            Self::SmtInputFlag => "-smt2",
         }
     }
 }
