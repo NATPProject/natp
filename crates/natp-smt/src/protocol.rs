@@ -1,8 +1,47 @@
-//! Accept only successful, unambiguous solver answers.
+//! Solver response classification.
 use natp_core::process;
-pub(super) fn is_unsat(output: &process::Output) -> bool {
-    output.success
-        && !output.timed_out
-        && output.stderr.trim().is_empty()
-        && output.stdout.trim() == "unsat"
+use std::time::Duration;
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum SolverAnswer<'a> {
+    Unsatisfiable,
+    Unexpected(&'a str),
+}
+impl<'a> SolverAnswer<'a> {
+    fn parse(text: &'a str) -> Self {
+        match text.trim() {
+            "unsat" => Self::Unsatisfiable,
+            text => Self::Unexpected(text),
+        }
+    }
+}
+pub(super) enum Failure<'a> {
+    Timeout,
+    UnexpectedAnswer(&'a str),
+}
+pub(super) fn failure(output: &process::Output) -> Option<Failure<'_>> {
+    if output.timed_out {
+        return Some(Failure::Timeout);
+    }
+    if !output.success {
+        return Some(Failure::UnexpectedAnswer(&output.stdout));
+    }
+    if !output.stderr.trim().is_empty() {
+        return Some(Failure::UnexpectedAnswer(&output.stdout));
+    }
+    match SolverAnswer::parse(&output.stdout) {
+        SolverAnswer::Unsatisfiable => None,
+        SolverAnswer::Unexpected(answer) => Some(Failure::UnexpectedAnswer(answer)),
+    }
+}
+impl Failure<'_> {
+    pub(super) fn describe(&self, timeout: Duration) -> String {
+        match self {
+            Self::Timeout => format!(
+                "solver timeout after {timeout:?}; increase Smt::timeout or simplify the obligation"
+            ),
+            Self::UnexpectedAnswer(answer) => {
+                format!("solver result was not accepted; stdout: {answer:?}")
+            }
+        }
+    }
 }

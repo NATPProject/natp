@@ -34,14 +34,15 @@ impl Backend for Smt {
                 goal.name, output.stdout, output.stderr
             ));
 
-            if !protocol::is_unsat(&output) {
+            if let Some(failure) = protocol::failure(&output) {
                 return Ok(Report {
                     theorem: theorem.clone(),
                     method: Method::SmtInduction,
                     outcome: Outcome::Inconclusive {
                         reason: format!(
-                            "{} obligation did not return a successful unsat answer",
-                            goal.name
+                            "{} obligation: {}",
+                            goal.name,
+                            failure.describe(self.timeout)
                         ),
                     },
                     evidence,

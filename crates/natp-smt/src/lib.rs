@@ -1,4 +1,4 @@
-//! SMT-LIB obligations and external solver execution.
+//! SMT query data and solver configuration.
 
 mod configuration;
 mod export;
@@ -18,7 +18,7 @@ pub use obligation::Obligation;
 pub use obligations::induction;
 
 use natp_core::process;
-/// Accept successful, unambiguous unsat output only.
+/// Accept an unambiguous successful unsat response.
 pub fn is_unsat(output: &process::Output) -> bool {
-    protocol::is_unsat(output)
+    protocol::failure(output).is_none()
 }
