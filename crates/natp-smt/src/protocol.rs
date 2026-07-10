@@ -6,6 +6,7 @@ enum SolverAnswer<'a> {
     Unsatisfiable,
     Satisfiable,
     Unknown,
+    Missing,
     Unexpected(&'a str),
 }
 impl<'a> SolverAnswer<'a> {
@@ -14,6 +15,7 @@ impl<'a> SolverAnswer<'a> {
             "unsat" => Self::Unsatisfiable,
             "sat" => Self::Satisfiable,
             "unknown" => Self::Unknown,
+            "" => Self::Missing,
             text => Self::Unexpected(text),
         }
     }
@@ -24,6 +26,7 @@ pub(super) enum Failure<'a> {
     Stderr,
     Satisfiable,
     Unknown,
+    MissingAnswer,
     UnexpectedAnswer(&'a str),
 }
 pub(super) fn failure(output: &process::Output) -> Option<Failure<'_>> {
@@ -40,6 +43,7 @@ pub(super) fn failure(output: &process::Output) -> Option<Failure<'_>> {
         SolverAnswer::Unsatisfiable => None,
         SolverAnswer::Satisfiable => Some(Failure::Satisfiable),
         SolverAnswer::Unknown => Some(Failure::Unknown),
+        SolverAnswer::Missing => Some(Failure::MissingAnswer),
         SolverAnswer::Unexpected(answer) => Some(Failure::UnexpectedAnswer(answer)),
     }
 }
@@ -55,6 +59,7 @@ impl Failure<'_> {
             Self::Stderr => "solver wrote to stderr; inspect the evidence and resolve the diagnostic before trusting its answer".into(),
             Self::Satisfiable => "solver returned sat for the negated obligation; induction did not establish the theorem (a satisfiable induction step is not a counterexample to the theorem)".into(),
             Self::Unknown => "solver returned unknown; try a longer timeout or a simpler obligation; no result was established".into(),
+            Self::MissingAnswer => "solver produced no answer; verify the executable accepts '-smt2 <file>'".into(),
             Self::UnexpectedAnswer(answer) => format!("solver result was not accepted; stdout: {answer:?}"),
         }
     }
