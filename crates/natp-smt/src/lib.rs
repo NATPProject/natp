@@ -1,4 +1,5 @@
-//! SMT query data and solver configuration.
+//! SMT-LIB translation and structural induction obligations.
+//! Successful solver answers are SmtValidated, never native kernel Proven.
 
 mod configuration;
 mod export;
@@ -18,7 +19,8 @@ pub use obligation::Obligation;
 pub use obligations::induction;
 
 use natp_core::process;
-/// Accept an unambiguous successful unsat response.
+
+/// Return true for `unsat` with a successful exit, no timeout, and empty stderr.
 pub fn is_unsat(output: &process::Output) -> bool {
     protocol::failure(output).is_none()
 }

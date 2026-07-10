@@ -206,12 +206,14 @@ impl SolverSetting {
 pub(super) enum RuntimePolicy {
     TimeoutSeconds,
     ElementBits,
+    DiagnosticCharacters,
 }
 impl RuntimePolicy {
     pub(super) fn number(self) -> usize {
         match self {
             Self::TimeoutSeconds => 10,
             Self::ElementBits => 32,
+            Self::DiagnosticCharacters => 160,
         }
     }
 

@@ -1,6 +1,9 @@
-//! Solver response classification.
+//! One fail-closed interpretation of solver output for acceptance and diagnostics.
+
+use crate::vocabulary::RuntimePolicy;
 use natp_core::process;
 use std::time::Duration;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum SolverAnswer<'a> {
     Unsatisfiable,
@@ -20,6 +23,7 @@ impl<'a> SolverAnswer<'a> {
         }
     }
 }
+
 pub(super) enum Failure<'a> {
     Timeout,
     Exit(Option<i32>),
@@ -29,16 +33,21 @@ pub(super) enum Failure<'a> {
     MissingAnswer,
     UnexpectedAnswer(&'a str),
 }
+
+/// Process status takes precedence over textual answers, even `unsat`.
 pub(super) fn failure(output: &process::Output) -> Option<Failure<'_>> {
     if output.timed_out {
         return Some(Failure::Timeout);
     }
+
     if !output.success {
         return Some(Failure::Exit(output.exit_code));
     }
+
     if !output.stderr.trim().is_empty() {
         return Some(Failure::Stderr);
     }
+
     match SolverAnswer::parse(&output.stdout) {
         SolverAnswer::Unsatisfiable => None,
         SolverAnswer::Satisfiable => Some(Failure::Satisfiable),
@@ -47,6 +56,7 @@ pub(super) fn failure(output: &process::Output) -> Option<Failure<'_>> {
         SolverAnswer::Unexpected(answer) => Some(Failure::UnexpectedAnswer(answer)),
     }
 }
+
 impl Failure<'_> {
     pub(super) fn describe(&self, timeout: Duration) -> String {
         match self {
@@ -60,7 +70,10 @@ impl Failure<'_> {
             Self::Satisfiable => "solver returned sat for the negated obligation; induction did not establish the theorem (a satisfiable induction step is not a counterexample to the theorem)".into(),
             Self::Unknown => "solver returned unknown; try a longer timeout or a simpler obligation; no result was established".into(),
             Self::MissingAnswer => "solver produced no answer; verify the executable accepts '-smt2 <file>'".into(),
-            Self::UnexpectedAnswer(answer) => format!("solver result was not accepted; stdout: {answer:?}"),
+            Self::UnexpectedAnswer(answer) => format!(
+                "expected exactly 'unsat', received {:?}; inspect the full solver evidence",
+                answer.chars().take(RuntimePolicy::DiagnosticCharacters.number()).collect::<String>(),
+            ),
         }
     }
 }
