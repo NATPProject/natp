@@ -5,6 +5,7 @@ use std::time::Duration;
 enum SolverAnswer<'a> {
     Unsatisfiable,
     Satisfiable,
+    Unknown,
     Unexpected(&'a str),
 }
 impl<'a> SolverAnswer<'a> {
@@ -12,6 +13,7 @@ impl<'a> SolverAnswer<'a> {
         match text.trim() {
             "unsat" => Self::Unsatisfiable,
             "sat" => Self::Satisfiable,
+            "unknown" => Self::Unknown,
             text => Self::Unexpected(text),
         }
     }
@@ -21,6 +23,7 @@ pub(super) enum Failure<'a> {
     Exit(Option<i32>),
     Stderr,
     Satisfiable,
+    Unknown,
     UnexpectedAnswer(&'a str),
 }
 pub(super) fn failure(output: &process::Output) -> Option<Failure<'_>> {
@@ -36,6 +39,7 @@ pub(super) fn failure(output: &process::Output) -> Option<Failure<'_>> {
     match SolverAnswer::parse(&output.stdout) {
         SolverAnswer::Unsatisfiable => None,
         SolverAnswer::Satisfiable => Some(Failure::Satisfiable),
+        SolverAnswer::Unknown => Some(Failure::Unknown),
         SolverAnswer::Unexpected(answer) => Some(Failure::UnexpectedAnswer(answer)),
     }
 }
@@ -50,6 +54,7 @@ impl Failure<'_> {
             ),
             Self::Stderr => "solver wrote to stderr; inspect the evidence and resolve the diagnostic before trusting its answer".into(),
             Self::Satisfiable => "solver returned sat for the negated obligation; induction did not establish the theorem (a satisfiable induction step is not a counterexample to the theorem)".into(),
+            Self::Unknown => "solver returned unknown; try a longer timeout or a simpler obligation; no result was established".into(),
             Self::UnexpectedAnswer(answer) => format!("solver result was not accepted; stdout: {answer:?}"),
         }
     }
