@@ -16,6 +16,7 @@ impl<'a> SolverAnswer<'a> {
 }
 pub(super) enum Failure<'a> {
     Timeout,
+    Exit(Option<i32>),
     UnexpectedAnswer(&'a str),
 }
 pub(super) fn failure(output: &process::Output) -> Option<Failure<'_>> {
@@ -23,7 +24,7 @@ pub(super) fn failure(output: &process::Output) -> Option<Failure<'_>> {
         return Some(Failure::Timeout);
     }
     if !output.success {
-        return Some(Failure::UnexpectedAnswer(&output.stdout));
+        return Some(Failure::Exit(output.exit_code));
     }
     if !output.stderr.trim().is_empty() {
         return Some(Failure::UnexpectedAnswer(&output.stdout));
@@ -38,6 +39,9 @@ impl Failure<'_> {
         match self {
             Self::Timeout => format!(
                 "solver timeout after {timeout:?}; increase Smt::timeout or simplify the obligation"
+            ),
+            Self::Exit(exit_code) => format!(
+                "solver exited unsuccessfully (exit code {exit_code:?}); inspect stderr in the report evidence"
             ),
             Self::UnexpectedAnswer(answer) => {
                 format!("solver result was not accepted; stdout: {answer:?}")
