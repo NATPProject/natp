@@ -1,0 +1,19 @@
+[package]
+name = "natp"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Rust-native finite-sequence theorem proving with explicit evidence and trust boundaries"
+keywords = ["theorem", "verification", "logic", "sequences"]
+categories = ["mathematics", "development-tools::testing"]
+
+[dependencies]
+natp-core.workspace = true
+natp-kernel.workspace = true
+natp-bounded.workspace = true
+natp-smt.workspace = true
+natp-macros.workspace = true
+
+[lints]
+workspace = true

@@ -6,6 +6,7 @@ members = [
     "crates/natp-kernel",
     "crates/natp-bounded",
     "crates/natp-smt",
+    "crates/natp",
 ]
 resolver = "3"
 
