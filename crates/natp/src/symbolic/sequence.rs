@@ -1,5 +1,5 @@
 use super::{SymbolicDomain, SymbolicElement, sealed};
-use natp_core::{Domain, Expr};
+use natp_core::{Domain, Expr, Prop};
 use std::marker::PhantomData;
 
 /// A symbolic finite list parameterised by element sort `T`.
@@ -25,6 +25,11 @@ impl<T: SymbolicElement> Seq<T> {
             expression,
             marker: PhantomData,
         }
+    }
+
+    /// Construct extensional sequence equality.
+    pub fn equals(self, rhs: Self) -> Prop {
+        Prop::SeqEq(self.expression, rhs.expression)
     }
 }
 
