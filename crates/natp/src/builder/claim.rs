@@ -1,4 +1,4 @@
-use crate::{Backend, Error, Report, Theorem};
+use crate::{Backend, Error, Kernel, Report, Theorem};
 
 /// A constructed theorem ready for backend submission; construction establishes no proof.
 #[derive(Clone, Debug)]
@@ -20,6 +20,14 @@ impl Claim {
     /// Return the theorem representation, consuming the claim.
     pub fn into_theorem(self) -> Theorem {
         self.theorem
+    }
+
+    /// Submit the unbounded claim to the kernel.
+    ///
+    /// # Errors
+    /// Returns validation or backend execution errors. Inspect a successful report's outcome.
+    pub fn prove(&self) -> Result<Report, Error> {
+        self.prove_with(&Kernel)
     }
 
     /// Submit the claim to the given backend.
