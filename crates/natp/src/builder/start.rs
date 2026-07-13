@@ -28,6 +28,13 @@ pub fn theorem() -> Builder {
 }
 
 impl Builder {
+    /// Set the theorem's diagnostic name; validation enforces its byte limit.
+    pub fn named(mut self, name: impl Into<String>) -> Self {
+        self.name = name.into();
+
+        self
+    }
+
     /// Introduce the first universal symbolic variable of domain `D`, initially unbounded.
     pub fn forall<D: SymbolicDomain>(self) -> Quantified<(D,)> {
         Quantified::first(self.name, D::DOMAIN)
