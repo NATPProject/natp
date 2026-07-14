@@ -43,6 +43,11 @@ impl<T: SymbolicElement> Seq<T> {
     }
 }
 
+/// Function form of [`Seq::reversed`].
+pub fn reverse<T: SymbolicElement>(sequence: Seq<T>) -> Seq<T> {
+    sequence.reversed()
+}
+
 impl<T: SymbolicElement> sealed::Domain for Seq<T> {}
 
 impl<T: SymbolicElement> SymbolicDomain for Seq<T> {
