@@ -32,6 +32,11 @@ impl<T: SymbolicElement> Seq<T> {
         Self::new(Expr::Empty(T::ELEMENT))
     }
 
+    /// Build a symbolic reversal; no concrete values are evaluated.
+    pub fn reversed(self) -> Self {
+        Self::new(Expr::Reverse(Box::new(self.expression)))
+    }
+
     /// Construct extensional sequence equality.
     pub fn equals(self, rhs: Self) -> Prop {
         Prop::SeqEq(self.expression, rhs.expression)
