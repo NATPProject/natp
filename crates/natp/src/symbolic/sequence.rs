@@ -27,6 +27,11 @@ impl<T: SymbolicElement> Seq<T> {
         }
     }
 
+    /// Construct an empty sequence with this element sort.
+    pub fn empty() -> Self {
+        Self::new(Expr::Empty(T::ELEMENT))
+    }
+
     /// Construct extensional sequence equality.
     pub fn equals(self, rhs: Self) -> Prop {
         Prop::SeqEq(self.expression, rhs.expression)
