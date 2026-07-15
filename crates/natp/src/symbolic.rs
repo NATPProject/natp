@@ -1,7 +1,7 @@
 use natp_core::{Domain, Element, Value};
 mod sequence;
 
-pub use sequence::{Seq, reverse};
+pub use sequence::{Seq, append, reverse};
 
 mod sealed {
     pub trait Element {}

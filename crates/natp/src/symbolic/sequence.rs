@@ -56,6 +56,11 @@ pub fn reverse<T: SymbolicElement>(sequence: Seq<T>) -> Seq<T> {
     sequence.reversed()
 }
 
+/// Function form of [`Seq::append`].
+pub fn append<T: SymbolicElement>(sequence: Seq<T>, other: Seq<T>) -> Seq<T> {
+    sequence.append(other)
+}
+
 impl<T: SymbolicElement> sealed::Domain for Seq<T> {}
 
 impl<T: SymbolicElement> SymbolicDomain for Seq<T> {
