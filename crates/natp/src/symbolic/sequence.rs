@@ -37,6 +37,14 @@ impl<T: SymbolicElement> Seq<T> {
         Self::new(Expr::Reverse(Box::new(self.expression)))
     }
 
+    /// Concatenate two symbolic sequences of the same sort.
+    pub fn append(self, rhs: Self) -> Self {
+        Self::new(Expr::Append(
+            Box::new(self.expression),
+            Box::new(rhs.expression),
+        ))
+    }
+
     /// Construct extensional sequence equality.
     pub fn equals(self, rhs: Self) -> Prop {
         Prop::SeqEq(self.expression, rhs.expression)
