@@ -66,6 +66,11 @@ pub fn append<T: SymbolicElement>(sequence: Seq<T>, other: Seq<T>) -> Seq<T> {
     sequence.append(other)
 }
 
+/// Function form of [`Seq::length`].
+pub fn length<T: SymbolicElement>(sequence: Seq<T>) -> Nat {
+    sequence.length()
+}
+
 impl<T: SymbolicElement> sealed::Domain for Seq<T> {}
 
 impl<T: SymbolicElement> SymbolicDomain for Seq<T> {
