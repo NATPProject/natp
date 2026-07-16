@@ -19,3 +19,10 @@ impl From<u64> for Nat {
         Self(NatExpr::Constant(value))
     }
 }
+
+impl<R: Into<Nat>> std::ops::Add<R> for Nat {
+    type Output = Self;
+    fn add(self, rhs: R) -> Self {
+        Self(NatExpr::Add(Box::new(self.0), Box::new(rhs.into().0)))
+    }
+}
