@@ -13,3 +13,9 @@ impl Nat {
         Prop::NatEq(self.0, rhs.into().0)
     }
 }
+
+impl From<u64> for Nat {
+    fn from(value: u64) -> Self {
+        Self(NatExpr::Constant(value))
+    }
+}
