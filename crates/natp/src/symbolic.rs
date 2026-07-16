@@ -1,6 +1,8 @@
 use natp_core::{Domain, Element, Value};
+mod natural;
 mod sequence;
 
+pub use natural::Nat;
 pub use sequence::{Seq, append, reverse};
 
 mod sealed {
