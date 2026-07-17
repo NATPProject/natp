@@ -3,7 +3,7 @@ mod natural;
 mod sequence;
 
 pub use natural::Nat;
-pub use sequence::{Seq, append, length, reverse};
+pub use sequence::{Seq, append, is_empty, length, reverse};
 
 mod sealed {
     pub trait Element {}

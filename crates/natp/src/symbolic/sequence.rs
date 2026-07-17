@@ -76,6 +76,11 @@ pub fn length<T: SymbolicElement>(sequence: Seq<T>) -> Nat {
     sequence.length()
 }
 
+/// Function form of [`Seq::is_empty`].
+pub fn is_empty<T: SymbolicElement>(sequence: Seq<T>) -> Prop {
+    sequence.is_empty()
+}
+
 impl<T: SymbolicElement> sealed::Domain for Seq<T> {}
 
 impl<T: SymbolicElement> SymbolicDomain for Seq<T> {
