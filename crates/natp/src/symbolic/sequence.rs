@@ -54,6 +54,11 @@ impl<T: SymbolicElement> Seq<T> {
     pub fn length(self) -> Nat {
         Nat::from_expression(NatExpr::Length(self.expression))
     }
+
+    /// Construct the proposition that this sequence has length zero.
+    pub fn is_empty(self) -> Prop {
+        Prop::IsEmpty(self.expression)
+    }
 }
 
 /// Function form of [`Seq::reversed`].
