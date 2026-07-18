@@ -38,6 +38,11 @@ impl<T: SymbolicElement> From<T> for Elem<T> {
     }
 }
 
+/// Lift a supported Rust literal into the symbolic language.
+pub fn literal<T: SymbolicElement>(value: T) -> Elem<T> {
+    value.into()
+}
+
 impl<T: SymbolicElement> sealed::Domain for Elem<T> {}
 
 impl<T: SymbolicElement> SymbolicDomain for Elem<T> {

@@ -3,7 +3,7 @@ mod element;
 mod natural;
 mod sequence;
 
-pub use element::Elem;
+pub use element::{Elem, literal};
 pub use natural::Nat;
 pub use sequence::{Seq, append, is_empty, length, reverse};
 
