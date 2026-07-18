@@ -1,7 +1,9 @@
 use natp_core::{Domain, Element, Value};
+mod element;
 mod natural;
 mod sequence;
 
+pub use element::Elem;
 pub use natural::Nat;
 pub use sequence::{Seq, append, is_empty, length, reverse};
 
