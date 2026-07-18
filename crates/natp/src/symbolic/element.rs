@@ -32,6 +32,12 @@ impl<T: SymbolicElement> Elem<T> {
     }
 }
 
+impl<T: SymbolicElement> From<T> for Elem<T> {
+    fn from(value: T) -> Self {
+        Self::new(ElemExpr::Constant(value.value()))
+    }
+}
+
 impl<T: SymbolicElement> sealed::Domain for Elem<T> {}
 
 impl<T: SymbolicElement> SymbolicDomain for Elem<T> {
