@@ -1,4 +1,4 @@
-use super::{Nat, SymbolicDomain, SymbolicElement, sealed};
+use super::{Elem, Nat, SymbolicDomain, SymbolicElement, sealed};
 use natp_core::{Domain, Expr, NatExpr, Prop};
 use std::marker::PhantomData;
 
@@ -58,6 +58,11 @@ impl<T: SymbolicElement> Seq<T> {
     /// Construct the proposition that this sequence has length zero.
     pub fn is_empty(self) -> Prop {
         Prop::IsEmpty(self.expression)
+    }
+
+    /// Construct membership using only element equality.
+    pub fn contains(self, value: impl Into<Elem<T>>) -> Prop {
+        Prop::Contains(self.expression, value.into().into_expression())
     }
 }
 

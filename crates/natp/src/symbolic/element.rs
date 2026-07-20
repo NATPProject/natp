@@ -26,6 +26,10 @@ impl<T: SymbolicElement> Elem<T> {
         }
     }
 
+    pub(super) fn into_expression(self) -> ElemExpr {
+        self.expression
+    }
+
     /// Construct equality with another symbolic element or a same-sort literal.
     pub fn equals(self, rhs: impl Into<Self>) -> Prop {
         Prop::ElemEq(self.expression, rhs.into().expression)
