@@ -86,6 +86,11 @@ pub fn is_empty<T: SymbolicElement>(sequence: Seq<T>) -> Prop {
     sequence.is_empty()
 }
 
+/// Function form of [`Seq::contains`].
+pub fn contains<T: SymbolicElement>(sequence: Seq<T>, element: impl Into<Elem<T>>) -> Prop {
+    sequence.contains(element)
+}
+
 impl<T: SymbolicElement> sealed::Domain for Seq<T> {}
 
 impl<T: SymbolicElement> SymbolicDomain for Seq<T> {
