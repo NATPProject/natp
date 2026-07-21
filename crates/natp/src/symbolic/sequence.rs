@@ -102,6 +102,11 @@ pub fn contains<T: SymbolicElement>(sequence: Seq<T>, element: impl Into<Elem<T>
     sequence.contains(element)
 }
 
+/// Function form of [`Seq::all`], including its binder restrictions.
+pub fn all<T: SymbolicElement>(sequence: Seq<T>, predicate: impl FnOnce(Elem<T>) -> Prop) -> Prop {
+    sequence.all(predicate)
+}
+
 impl<T: SymbolicElement> sealed::Domain for Seq<T> {}
 
 impl<T: SymbolicElement> SymbolicDomain for Seq<T> {
