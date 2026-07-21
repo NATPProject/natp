@@ -1,5 +1,5 @@
 use super::{Elem, Nat, SymbolicDomain, SymbolicElement, sealed};
-use natp_core::{Domain, Expr, NatExpr, Prop};
+use natp_core::{Domain, ElemExpr, Expr, NatExpr, Prop};
 use std::marker::PhantomData;
 
 /// A symbolic finite list parameterised by element sort `T`.
@@ -63,6 +63,17 @@ impl<T: SymbolicElement> Seq<T> {
     /// Construct membership using only element equality.
     pub fn contains(self, value: impl Into<Elem<T>>) -> Prop {
         Prop::Contains(self.expression, value.into().into_expression())
+    }
+
+    /// Build a predicate over every element, evaluating the symbolic closure once.
+    ///
+    /// Empty sequences satisfy this proposition. Nested binders and escaped bound
+    /// elements are rejected during theorem validation.
+    pub fn all(self, predicate: impl FnOnce(Elem<T>) -> Prop) -> Prop {
+        Prop::All(
+            self.expression,
+            Box::new(predicate(Elem::new(ElemExpr::Bound))),
+        )
     }
 }
 

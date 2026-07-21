@@ -2,7 +2,7 @@ use super::{SymbolicDomain, SymbolicElement, sealed};
 use natp_core::{Domain, ElemExpr, Prop};
 use std::marker::PhantomData;
 
-/// A typed symbolic scalar, either quantified or literal.
+/// A typed symbolic scalar, either quantified, literal, or bound by `all`.
 #[derive(Debug)]
 pub struct Elem<T> {
     expression: ElemExpr,
