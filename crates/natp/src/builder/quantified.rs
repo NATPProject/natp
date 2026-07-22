@@ -70,3 +70,4 @@ macro_rules! quantifiers {
 
 quantifiers!(A: 0);
 quantifiers!(A: 0, B: 1);
+quantifiers!(A: 0, B: 1, C: 2);
