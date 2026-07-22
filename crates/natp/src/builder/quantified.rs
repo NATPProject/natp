@@ -27,6 +27,21 @@ impl<Q> Quantified<Q> {
         }
     }
 
+    /// Append a universal quantifier, preserving the scope selected so far.
+    pub fn forall<D: SymbolicDomain>(mut self) -> Quantified<<Q as Push<D>>::Output>
+    where
+        Q: Push<D>,
+    {
+        self.variables.push(D::DOMAIN);
+
+        Quantified {
+            name: self.name,
+            variables: self.variables,
+            scope: self.scope,
+            marker: PhantomData,
+        }
+    }
+
     fn finish(self, claim: Prop) -> Claim {
         Claim::new(Theorem {
             schema_version: natp_core::limits::SCHEMA_VERSION,
@@ -54,3 +69,4 @@ macro_rules! quantifiers {
 }
 
 quantifiers!(A: 0);
+quantifiers!(A: 0, B: 1);
