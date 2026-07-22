@@ -71,3 +71,8 @@ macro_rules! quantifiers {
 quantifiers!(A: 0);
 quantifiers!(A: 0, B: 1);
 quantifiers!(A: 0, B: 1, C: 2);
+quantifiers!(A: 0, B: 1, C: 2, D: 3);
+quantifiers!(A: 0, B: 1, C: 2, D: 3, E: 4);
+quantifiers!(A: 0, B: 1, C: 2, D: 3, E: 4, F: 5);
+quantifiers!(A: 0, B: 1, C: 2, D: 3, E: 4, F: 5, G: 6);
+quantifiers!(A: 0, B: 1, C: 2, D: 3, E: 4, F: 5, G: 6, H: 7);
