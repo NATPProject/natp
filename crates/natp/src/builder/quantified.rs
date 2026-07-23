@@ -42,6 +42,13 @@ impl<Q> Quantified<Q> {
         }
     }
 
+    /// Set the inclusive maximum input length for every sequence quantifier, including later ones.
+    pub fn max_length(mut self, max_len: usize) -> Self {
+        self.scope = Scope::Bounded { max_len };
+
+        self
+    }
+
     fn finish(self, claim: Prop) -> Claim {
         Claim::new(Theorem {
             schema_version: natp_core::limits::SCHEMA_VERSION,

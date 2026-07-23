@@ -1,4 +1,4 @@
-use crate::{Backend, Error, Kernel, Report, Theorem};
+use crate::{Backend, Bounded, Error, Kernel, Report, Scope, Theorem};
 
 /// A constructed theorem ready for backend submission; construction establishes no proof.
 #[derive(Clone, Debug)]
@@ -22,12 +22,15 @@ impl Claim {
         self.theorem
     }
 
-    /// Submit the unbounded claim to the kernel.
+    /// Route unbounded claims to the kernel and bounded claims to native verification.
     ///
     /// # Errors
     /// Returns validation or backend execution errors. Inspect a successful report's outcome.
     pub fn prove(&self) -> Result<Report, Error> {
-        self.prove_with(&Kernel)
+        match self.theorem.scope {
+            Scope::Unbounded => self.prove_with(&Kernel),
+            Scope::Bounded { .. } => self.prove_with(&Bounded::default()),
+        }
     }
 
     /// Submit the claim to the given backend.

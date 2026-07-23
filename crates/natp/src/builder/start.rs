@@ -20,7 +20,7 @@ pub struct Builder {
     name: String,
 }
 
-/// Start building an unbounded theorem.
+/// Start building a theorem. Quantifiers are unbounded unless given a bound.
 pub fn theorem() -> Builder {
     Builder {
         name: BuilderSetting::DefaultName.value().into(),

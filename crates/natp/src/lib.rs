@@ -1,4 +1,4 @@
-//! Typed theorem construction over NATP symbolic expressions.
+//! Rust-native theorem proving for finite sequences.
 
 mod builder;
 extern crate self as natp;
