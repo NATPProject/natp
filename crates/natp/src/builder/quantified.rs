@@ -42,6 +42,13 @@ impl<Q> Quantified<Q> {
         }
     }
 
+    /// Explicitly quantify over all finite sequence lengths.
+    pub fn any_length(mut self) -> Self {
+        self.scope = Scope::Unbounded;
+
+        self
+    }
+
     /// Set the inclusive maximum input length for every sequence quantifier, including later ones.
     pub fn max_length(mut self, max_len: usize) -> Self {
         self.scope = Scope::Bounded { max_len };
