@@ -28,6 +28,7 @@ jobs:
       - run: cargo test --workspace --doc --locked
       - run: cargo build --workspace --release --locked
       - run: cargo doc --workspace --no-deps --locked
+      - run: cargo natp --help
 
   msrv:
     runs-on: ubuntu-latest

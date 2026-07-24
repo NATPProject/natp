@@ -1,0 +1,2 @@
+[alias]
+natp = "run --quiet --package cargo-natp --"
