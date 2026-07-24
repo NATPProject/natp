@@ -58,5 +58,9 @@ fn print_report(
 ) -> Result<(), Error> {
     writeln!(output, "{report}")?;
 
+    if !report.is_established() {
+        writeln!(output, "  {}", report.evidence)?;
+    }
+
     Ok(())
 }
