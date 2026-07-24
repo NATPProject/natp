@@ -40,7 +40,7 @@ impl CommandName {
     }
 
     fn parse(name: &str) -> Option<Self> {
-        if Flag::parse(name).is_some() {
+        if Flag::parse(name).is_some_and(Flag::is_help) || name == Self::Help.spelling() {
             Some(Self::Help)
         } else {
             Self::ACTIONS
@@ -60,19 +60,25 @@ impl CommandName {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Flag {
     Help,
+    ShortHelp,
 }
 
 impl Flag {
-    const ALL: [Self; 1] = [Self::Help];
+    const ALL: [Self; 2] = [Self::Help, Self::ShortHelp];
 
     fn spelling(self) -> &'static str {
         match self {
             Self::Help => "--help",
+            Self::ShortHelp => "-h",
         }
     }
 
     fn parse(name: &str) -> Option<Self> {
         Self::ALL.into_iter().find(|flag| flag.spelling() == name)
+    }
+
+    fn is_help(self) -> bool {
+        matches!(self, Self::Help | Self::ShortHelp)
     }
 }
 
@@ -115,6 +121,15 @@ impl Command {
         };
 
         if command == CommandName::Help {
+            return Ok(Self::Help);
+        }
+
+        if arguments.len() == 1
+            && arguments[0]
+                .to_str()
+                .and_then(Flag::parse)
+                .is_some_and(Flag::is_help)
+        {
             return Ok(Self::Help);
         }
 
