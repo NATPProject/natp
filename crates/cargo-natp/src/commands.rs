@@ -44,6 +44,9 @@ pub(crate) fn execute_to(
 
                 print_report(&report, trace, output)?;
                 outcome = CommandOutcome::from_established(report.is_established());
+                if outcome == CommandOutcome::Unestablished {
+                    return Ok(outcome);
+                }
             }
 
             Ok(outcome)

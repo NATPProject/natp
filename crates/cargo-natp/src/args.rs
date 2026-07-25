@@ -5,7 +5,7 @@ use std::{ffi::OsString, path::PathBuf};
 pub(crate) const HELP: &str = "\
 Rust-native theorem system
 
-Usage: cargo natp check <theorem.json>
+Usage: cargo natp check <theorem.json>...
 
 Outcomes distinguish kernel Proven from bounded Verified.
 Exit codes: 0 established, 1 refuted/inconclusive, 2 error.
@@ -51,7 +51,7 @@ impl CommandName {
 
     fn expected_paths(self) -> &'static str {
         match self {
-            Self::Check => "one theorem path",
+            Self::Check => "at least one theorem path",
             Self::Help => "no paths",
         }
     }
@@ -153,7 +153,7 @@ impl Command {
         }
 
         match (command, paths.as_slice()) {
-            (CommandName::Check, [_]) => Ok(Self::Check {
+            (CommandName::Check, [_, ..]) => Ok(Self::Check {
                 theorems: paths,
                 trace,
             }),
