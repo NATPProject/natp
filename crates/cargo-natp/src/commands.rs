@@ -16,6 +16,13 @@ impl CommandOutcome {
             Self::Unestablished
         }
     }
+
+    fn combine(self, other: Self) -> Self {
+        match (self, other) {
+            (Self::Established, Self::Established) => Self::Established,
+            _ => Self::Unestablished,
+        }
+    }
 }
 
 pub(crate) fn execute(command: Command) -> Result<CommandOutcome, Error> {
@@ -43,10 +50,8 @@ pub(crate) fn execute_to(
                 };
 
                 print_report(&report, trace, output)?;
-                outcome = CommandOutcome::from_established(report.is_established());
-                if outcome == CommandOutcome::Unestablished {
-                    return Ok(outcome);
-                }
+                outcome =
+                    outcome.combine(CommandOutcome::from_established(report.is_established()));
             }
 
             Ok(outcome)
