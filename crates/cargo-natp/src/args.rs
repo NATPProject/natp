@@ -5,7 +5,7 @@ use std::{ffi::OsString, path::PathBuf};
 pub(crate) const HELP: &str = "\
 Rust-native theorem system
 
-Usage: cargo natp check <theorem.json>...
+Usage: cargo natp check [--trace] <theorem.json>...
 
 Outcomes distinguish kernel Proven from bounded Verified.
 Exit codes: 0 established, 1 refuted/inconclusive, 2 error.
@@ -61,15 +61,17 @@ impl CommandName {
 enum Flag {
     Help,
     ShortHelp,
+    Trace,
 }
 
 impl Flag {
-    const ALL: [Self; 2] = [Self::Help, Self::ShortHelp];
+    const ALL: [Self; 3] = [Self::Help, Self::ShortHelp, Self::Trace];
 
     fn spelling(self) -> &'static str {
         match self {
             Self::Help => "--help",
             Self::ShortHelp => "-h",
+            Self::Trace => "--trace",
         }
     }
 
@@ -85,6 +87,7 @@ impl Flag {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum TraceMode {
     Hide,
+    Show,
 }
 
 pub(crate) enum Command {
@@ -134,15 +137,22 @@ impl Command {
         }
 
         let mut paths = Vec::new();
-        let trace = TraceMode::Hide;
+        let mut trace = TraceMode::Hide;
 
         for argument in arguments {
+            let flag = argument.to_str().and_then(Flag::parse);
+
+            if flag == Some(Flag::Trace) && command == CommandName::Check {
+                trace = TraceMode::Show;
+                continue;
+            }
+
             if argument.to_string_lossy().starts_with('-') {
                 return Err(
                     Error::new(format!("unknown option {argument:?} for '{name}'"))
                         .with_code(Code::Option)
                         .with_help(if command == CommandName::Check {
-                            "run cargo natp check --help for usage"
+                            "the only check option is --trace"
                         } else {
                             "this command takes positional paths"
                         }),

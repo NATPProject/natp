@@ -61,13 +61,19 @@ pub(crate) fn execute_to(
 
 fn print_report(
     report: &Report,
-    _trace_mode: TraceMode,
+    trace_mode: TraceMode,
     output: &mut impl Write,
 ) -> Result<(), Error> {
     writeln!(output, "{report}")?;
 
     if !report.is_established() {
         writeln!(output, "  {}", report.evidence)?;
+    }
+
+    if trace_mode == TraceMode::Show {
+        if let Some(trace) = &report.trace {
+            write!(output, "{}", trace.render())?;
+        }
     }
 
     Ok(())
