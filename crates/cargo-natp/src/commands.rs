@@ -71,8 +71,9 @@ fn print_report(
     }
 
     if trace_mode == TraceMode::Show {
-        if let Some(trace) = &report.trace {
-            write!(output, "{}", trace.render())?;
+        match &report.trace {
+            Some(trace) => write!(output, "{}", trace.render())?,
+            None => writeln!(output, "  No kernel proof trace.")?,
         }
     }
 
