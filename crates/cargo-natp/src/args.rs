@@ -6,6 +6,7 @@ pub(crate) const HELP: &str = "\
 Rust-native theorem system
 
 Usage: cargo natp check [--trace] <theorem.json>...
+       cargo natp certify <theorem.json> <certificate.json>
 
 Outcomes distinguish kernel Proven from bounded Verified.
 Exit codes: 0 established, 1 refuted/inconclusive, 2 error.
@@ -27,15 +28,17 @@ impl Invocation {
 enum CommandName {
     Help,
     Check,
+    Certify,
 }
 
 impl CommandName {
-    const ACTIONS: [Self; 1] = [Self::Check];
+    const ACTIONS: [Self; 2] = [Self::Check, Self::Certify];
 
     fn spelling(self) -> &'static str {
         match self {
             Self::Help => "help",
             Self::Check => "check",
+            Self::Certify => "certify",
         }
     }
 
@@ -52,6 +55,7 @@ impl CommandName {
     fn expected_paths(self) -> &'static str {
         match self {
             Self::Check => "at least one theorem path",
+            Self::Certify => "two paths: <theorem.json> <certificate.json>",
             Self::Help => "no paths",
         }
     }
@@ -96,6 +100,10 @@ pub(crate) enum Command {
         theorems: Vec<PathBuf>,
         trace: TraceMode,
     },
+    Certify {
+        theorem: PathBuf,
+        certificate: PathBuf,
+    },
 }
 
 impl Command {
@@ -114,7 +122,7 @@ impl Command {
         let name = name.to_str().ok_or_else(|| {
             Error::new("command name is not valid UTF-8")
                 .with_code(Code::Command)
-                .with_help("use check; file paths may be OS-native")
+                .with_help("use check, certify; file paths may be OS-native")
         })?;
 
         let Some(command) = CommandName::parse(name) else {
@@ -166,6 +174,10 @@ impl Command {
             (CommandName::Check, [_, ..]) => Ok(Self::Check {
                 theorems: paths,
                 trace,
+            }),
+            (CommandName::Certify, [theorem, certificate]) => Ok(Self::Certify {
+                theorem: theorem.clone(),
+                certificate: certificate.clone(),
             }),
             _ => {
                 let expected = command.expected_paths();

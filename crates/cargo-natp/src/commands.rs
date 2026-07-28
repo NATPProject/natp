@@ -1,6 +1,9 @@
 use crate::args::{Command, HELP, TraceMode};
-use natp::{Backend, Bounded, Error, Kernel, Report, Scope, Theorem};
-use std::io::{self, Write};
+use natp::{Backend, Bounded, Error, Kernel, Report, Scope, Theorem, kernel};
+use std::{
+    io::{self, Write},
+    path::Path,
+};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum CommandOutcome {
@@ -56,7 +59,34 @@ pub(crate) fn execute_to(
 
             Ok(outcome)
         }
+
+        Command::Certify {
+            theorem,
+            certificate,
+        } => certify(&theorem, &certificate, output),
     }
+}
+
+fn certify(
+    theorem_path: &Path,
+    certificate_path: &Path,
+    output: &mut impl Write,
+) -> Result<CommandOutcome, Error> {
+    let theorem = Theorem::load(theorem_path)?;
+    let Some(certificate) = kernel::certify(&theorem)? else {
+        writeln!(output, "Inconclusive: no kernel certificate")?;
+
+        return Ok(CommandOutcome::Unestablished);
+    };
+
+    certificate.save(certificate_path)?;
+    writeln!(
+        output,
+        "Saved checked kernel certificate for {}",
+        theorem.name
+    )?;
+
+    Ok(CommandOutcome::Established)
 }
 
 fn print_report(
