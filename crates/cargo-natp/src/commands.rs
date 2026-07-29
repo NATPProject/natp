@@ -28,6 +28,20 @@ impl CommandOutcome {
     }
 }
 
+enum CertificateStatus {
+    Accepted,
+    Rejected,
+}
+
+impl CertificateStatus {
+    fn label(self) -> &'static str {
+        match self {
+            Self::Accepted => "ACCEPTED (unbounded)",
+            Self::Rejected => "REJECTED",
+        }
+    }
+}
+
 pub(crate) fn execute(command: Command) -> Result<CommandOutcome, Error> {
     execute_to(command, &mut io::stdout().lock())
 }
@@ -64,6 +78,10 @@ pub(crate) fn execute_to(
             theorem,
             certificate,
         } => certify(&theorem, &certificate, output),
+        Command::CheckCertificate {
+            theorem,
+            certificate,
+        } => check_certificate(&theorem, &certificate, output),
     }
 }
 
@@ -87,6 +105,25 @@ fn certify(
     )?;
 
     Ok(CommandOutcome::Established)
+}
+
+fn check_certificate(
+    theorem_path: &Path,
+    certificate_path: &Path,
+    output: &mut impl Write,
+) -> Result<CommandOutcome, Error> {
+    let theorem = Theorem::load(theorem_path)?;
+    let certificate = kernel::Certificate::load(certificate_path)?;
+    let valid = kernel::check(&theorem, &certificate)?;
+    let status = if valid {
+        CertificateStatus::Accepted
+    } else {
+        CertificateStatus::Rejected
+    };
+
+    writeln!(output, "Kernel certificate: {}", status.label())?;
+
+    Ok(CommandOutcome::from_established(valid))
 }
 
 fn print_report(
