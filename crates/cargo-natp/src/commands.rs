@@ -114,7 +114,9 @@ fn check_certificate(
 ) -> Result<CommandOutcome, Error> {
     let theorem = Theorem::load(theorem_path)?;
     let certificate = kernel::Certificate::load(certificate_path)?;
-    let valid = kernel::check(&theorem, &certificate)?;
+    // Keep rejected certificates at exit code 1 while showing why they failed.
+    let diagnosis = kernel::check_detailed(&theorem, &certificate);
+    let valid = diagnosis.is_ok();
     let status = if valid {
         CertificateStatus::Accepted
     } else {
@@ -122,6 +124,14 @@ fn check_certificate(
     };
 
     writeln!(output, "Kernel certificate: {}", status.label())?;
+
+    if let Err(error) = diagnosis {
+        if !error.code().is_certificate_rejection() {
+            return Err(error);
+        }
+
+        writeln!(output, "{error}")?;
+    }
 
     Ok(CommandOutcome::from_established(valid))
 }
