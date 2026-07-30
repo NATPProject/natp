@@ -8,7 +8,7 @@ Rust-native theorem system
 Usage: cargo natp check [--trace] <theorem.json>...
        cargo natp certify <theorem.json> <certificate.json>
        cargo natp check-certificate <theorem.json> <certificate.json>
-       cargo natp smt <theorem.json>
+       cargo natp smt <theorem.json> [z3-executable]
 
 Outcomes distinguish kernel Proven, bounded Verified, and SmtValidated.
 Exit codes: 0 established, 1 refuted/inconclusive/invalid certificate, 2 error.
@@ -69,7 +69,7 @@ impl CommandName {
             Self::Certify | Self::CheckCertificate => {
                 "two paths: <theorem.json> <certificate.json>"
             }
-            Self::Smt => "one path: <theorem.json>",
+            Self::Smt => "one or two paths: <theorem.json> [z3-executable]",
             Self::Help => "no paths",
         }
     }
@@ -124,6 +124,7 @@ pub(crate) enum Command {
     },
     Smt {
         theorem: PathBuf,
+        executable: Option<PathBuf>,
     },
 }
 
@@ -208,6 +209,11 @@ impl Command {
             }),
             (CommandName::Smt, [theorem]) => Ok(Self::Smt {
                 theorem: theorem.clone(),
+                executable: None,
+            }),
+            (CommandName::Smt, [theorem, executable]) => Ok(Self::Smt {
+                theorem: theorem.clone(),
+                executable: Some(executable.clone()),
             }),
             _ => {
                 let expected = command.expected_paths();

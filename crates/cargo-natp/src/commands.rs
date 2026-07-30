@@ -82,9 +82,16 @@ pub(crate) fn execute_to(
             theorem,
             certificate,
         } => check_certificate(&theorem, &certificate, output),
-        Command::Smt { theorem } => {
+        Command::Smt {
+            theorem,
+            executable,
+        } => {
             let theorem = Theorem::load(theorem)?;
-            let solver = Smt::default();
+            let mut solver = Smt::default();
+
+            if let Some(executable) = executable {
+                solver.executable = executable;
+            }
 
             let report = solver.prove(&theorem)?;
             writeln!(output, "{report}\n{}", report.evidence)?;
