@@ -1,5 +1,5 @@
 use crate::args::{Command, HELP, TraceMode};
-use natp::{Backend, Bounded, Error, Kernel, Report, Scope, Theorem, kernel};
+use natp::{Backend, Bounded, Error, Kernel, Report, Scope, Smt, Theorem, kernel};
 use std::{
     io::{self, Write},
     path::Path,
@@ -82,6 +82,15 @@ pub(crate) fn execute_to(
             theorem,
             certificate,
         } => check_certificate(&theorem, &certificate, output),
+        Command::Smt { theorem } => {
+            let theorem = Theorem::load(theorem)?;
+            let solver = Smt::default();
+
+            let report = solver.prove(&theorem)?;
+            writeln!(output, "{report}\n{}", report.evidence)?;
+
+            Ok(CommandOutcome::from_established(report.is_smt_validated()))
+        }
     }
 }
 

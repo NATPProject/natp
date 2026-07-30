@@ -8,8 +8,9 @@ Rust-native theorem system
 Usage: cargo natp check [--trace] <theorem.json>...
        cargo natp certify <theorem.json> <certificate.json>
        cargo natp check-certificate <theorem.json> <certificate.json>
+       cargo natp smt <theorem.json>
 
-Outcomes distinguish kernel Proven from bounded Verified.
+Outcomes distinguish kernel Proven, bounded Verified, and SmtValidated.
 Exit codes: 0 established, 1 refuted/inconclusive/invalid certificate, 2 error.
 ";
 
@@ -31,10 +32,16 @@ enum CommandName {
     Check,
     Certify,
     CheckCertificate,
+    Smt,
 }
 
 impl CommandName {
-    const ACTIONS: [Self; 3] = [Self::Check, Self::Certify, Self::CheckCertificate];
+    const ACTIONS: [Self; 4] = [
+        Self::Check,
+        Self::Certify,
+        Self::CheckCertificate,
+        Self::Smt,
+    ];
 
     fn spelling(self) -> &'static str {
         match self {
@@ -42,6 +49,7 @@ impl CommandName {
             Self::Check => "check",
             Self::Certify => "certify",
             Self::CheckCertificate => "check-certificate",
+            Self::Smt => "smt",
         }
     }
 
@@ -61,6 +69,7 @@ impl CommandName {
             Self::Certify | Self::CheckCertificate => {
                 "two paths: <theorem.json> <certificate.json>"
             }
+            Self::Smt => "one path: <theorem.json>",
             Self::Help => "no paths",
         }
     }
@@ -113,6 +122,9 @@ pub(crate) enum Command {
         theorem: PathBuf,
         certificate: PathBuf,
     },
+    Smt {
+        theorem: PathBuf,
+    },
 }
 
 impl Command {
@@ -131,7 +143,9 @@ impl Command {
         let name = name.to_str().ok_or_else(|| {
             Error::new("command name is not valid UTF-8")
                 .with_code(Code::Command)
-                .with_help("use check, certify, check-certificate; file paths may be OS-native")
+                .with_help(
+                    "use check, certify, check-certificate, smt; file paths may be OS-native",
+                )
         })?;
 
         let Some(command) = CommandName::parse(name) else {
@@ -191,6 +205,9 @@ impl Command {
             (CommandName::CheckCertificate, [theorem, certificate]) => Ok(Self::CheckCertificate {
                 theorem: theorem.clone(),
                 certificate: certificate.clone(),
+            }),
+            (CommandName::Smt, [theorem]) => Ok(Self::Smt {
+                theorem: theorem.clone(),
             }),
             _ => {
                 let expected = command.expected_paths();
