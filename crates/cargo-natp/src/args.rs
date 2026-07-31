@@ -202,6 +202,12 @@ impl Command {
             }
 
             if flag == Some(Flag::Trace) && command == CommandName::Check {
+                if trace == TraceMode::Show {
+                    return Err(Error::new("--trace was specified more than once")
+                        .with_code(Code::Option)
+                        .with_help("pass --trace once to show kernel derivations"));
+                }
+
                 trace = TraceMode::Show;
                 continue;
             }
