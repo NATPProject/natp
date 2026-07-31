@@ -27,6 +27,18 @@ impl Invocation {
     }
 }
 
+enum CommandLimit {
+    SuggestionDistance,
+}
+
+impl CommandLimit {
+    fn value(self) -> usize {
+        match self {
+            Self::SuggestionDistance => 2,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum CommandName {
     Help,
@@ -167,9 +179,20 @@ impl Command {
         })?;
 
         let Some(command) = CommandName::parse(name) else {
+            let suggestion = CommandName::ACTIONS
+                .into_iter()
+                .map(CommandName::spelling)
+                .find(|candidate| {
+                    edit_distance(name, candidate) <= CommandLimit::SuggestionDistance.value()
+                });
+            let help = match suggestion {
+                Some(candidate) => format!("did you mean 'cargo natp {candidate}'? Run cargo natp --help for usage"),
+                None => "use check, certify, check-certificate, smt, or emit-smt; run cargo natp --help for usage".into(),
+            };
+
             return Err(Error::new(format!("unknown command {name:?}"))
                 .with_code(Code::Command)
-                .with_help("run cargo natp --help for usage"));
+                .with_help(help));
         };
 
         if command == CommandName::Help {
@@ -262,4 +285,26 @@ impl Command {
             }
         }
     }
+}
+
+fn edit_distance(left: &str, right: &str) -> usize {
+    let mut previous: Vec<_> = (0..=right.chars().count()).collect();
+
+    for (i, a) in left.chars().enumerate() {
+        let mut current = vec![i + 1];
+
+        for (j, b) in right.chars().enumerate() {
+            current.push(
+                (previous[j + 1] + 1)
+                    .min(current[j] + 1)
+                    .min(previous[j] + usize::from(a != b)),
+            );
+        }
+        previous = current;
+    }
+
+    previous
+        .last()
+        .copied()
+        .map_or(left.len(), std::convert::identity)
 }
