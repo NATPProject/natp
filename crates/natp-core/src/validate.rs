@@ -1,9 +1,7 @@
 //! Validate theorem structure and report the field containing an error.
 
 use crate::{Code, DiagnosticField, DomainKind, catalogue::SyntaxEdge};
-use crate::{
-    Domain, ElemExpr, Element, Error, ErrorKind, Expr, NatExpr, Prop, Scope, Theorem, limits,
-};
+use crate::{Domain, ElemExpr, Element, Error, ErrorKind, Expr, NatExpr, Prop, Scope, Theorem, limits};
 
 impl Theorem {
     /// Check schema, quantifiers, scope, sorts, binders, and syntax budgets.
