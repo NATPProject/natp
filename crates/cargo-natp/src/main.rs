@@ -1,4 +1,4 @@
-//! Cargo commands for NATP theorem checking.
+//! Check theorem files and certificates, and run or export SMT queries.
 
 mod args;
 mod commands;

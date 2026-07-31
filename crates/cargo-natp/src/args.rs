@@ -9,9 +9,10 @@ Usage: cargo natp check [--trace] <theorem.json>...
        cargo natp certify <theorem.json> <certificate.json>
        cargo natp check-certificate <theorem.json> <certificate.json>
        cargo natp smt <theorem.json> [z3-executable]
+       cargo natp emit-smt <theorem.json> <new-directory>
 
 Outcomes distinguish kernel Proven, bounded Verified, and SmtValidated.
-Exit codes: 0 established, 1 refuted/inconclusive/invalid certificate, 2 error.
+Exit codes: 0 established/exported, 1 refuted/inconclusive/invalid certificate, 2 error.
 ";
 
 enum Invocation {
@@ -33,14 +34,16 @@ enum CommandName {
     Certify,
     CheckCertificate,
     Smt,
+    EmitSmt,
 }
 
 impl CommandName {
-    const ACTIONS: [Self; 4] = [
+    const ACTIONS: [Self; 5] = [
         Self::Check,
         Self::Certify,
         Self::CheckCertificate,
         Self::Smt,
+        Self::EmitSmt,
     ];
 
     fn spelling(self) -> &'static str {
@@ -50,6 +53,7 @@ impl CommandName {
             Self::Certify => "certify",
             Self::CheckCertificate => "check-certificate",
             Self::Smt => "smt",
+            Self::EmitSmt => "emit-smt",
         }
     }
 
@@ -70,6 +74,7 @@ impl CommandName {
                 "two paths: <theorem.json> <certificate.json>"
             }
             Self::Smt => "one or two paths: <theorem.json> [z3-executable]",
+            Self::EmitSmt => "two paths: <theorem.json> <new-directory>",
             Self::Help => "no paths",
         }
     }
@@ -126,6 +131,10 @@ pub(crate) enum Command {
         theorem: PathBuf,
         executable: Option<PathBuf>,
     },
+    EmitSmt {
+        theorem: PathBuf,
+        directory: PathBuf,
+    },
 }
 
 impl Command {
@@ -145,7 +154,7 @@ impl Command {
             Error::new("command name is not valid UTF-8")
                 .with_code(Code::Command)
                 .with_help(
-                    "use check, certify, check-certificate, smt; file paths may be OS-native",
+                    "use check, certify, check-certificate, smt, emit-smt; file paths may be OS-native",
                 )
         })?;
 
@@ -214,6 +223,10 @@ impl Command {
             (CommandName::Smt, [theorem, executable]) => Ok(Self::Smt {
                 theorem: theorem.clone(),
                 executable: Some(executable.clone()),
+            }),
+            (CommandName::EmitSmt, [theorem, directory]) => Ok(Self::EmitSmt {
+                theorem: theorem.clone(),
+                directory: directory.clone(),
             }),
             _ => {
                 let expected = command.expected_paths();

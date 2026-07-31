@@ -98,6 +98,15 @@ pub(crate) fn execute_to(
 
             Ok(CommandOutcome::from_established(report.is_smt_validated()))
         }
+        Command::EmitSmt { theorem, directory } => {
+            natp::smt::write_obligations(&Theorem::load(theorem)?, directory)?;
+            writeln!(
+                output,
+                "Exported obligations. No proof or validation has been performed."
+            )?;
+
+            Ok(CommandOutcome::Established)
+        }
     }
 }
 
