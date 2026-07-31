@@ -85,16 +85,18 @@ enum Flag {
     Help,
     ShortHelp,
     Trace,
+    LiteralPaths,
 }
 
 impl Flag {
-    const ALL: [Self; 3] = [Self::Help, Self::ShortHelp, Self::Trace];
+    const ALL: [Self; 4] = [Self::Help, Self::ShortHelp, Self::Trace, Self::LiteralPaths];
 
     fn spelling(self) -> &'static str {
         match self {
             Self::Help => "--help",
             Self::ShortHelp => "-h",
             Self::Trace => "--trace",
+            Self::LiteralPaths => "--",
         }
     }
 
@@ -111,6 +113,12 @@ impl Flag {
 pub(crate) enum TraceMode {
     Hide,
     Show,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum ArgumentMode {
+    Options,
+    LiteralPaths,
 }
 
 pub(crate) enum Command {
@@ -154,7 +162,7 @@ impl Command {
             Error::new("command name is not valid UTF-8")
                 .with_code(Code::Command)
                 .with_help(
-                    "use check, certify, check-certificate, smt, emit-smt; file paths may be OS-native",
+                    "use check, certify, check-certificate, smt, or emit-smt; file paths may be OS-native",
                 )
         })?;
 
@@ -179,25 +187,33 @@ impl Command {
 
         let mut paths = Vec::new();
         let mut trace = TraceMode::Hide;
+        let mut mode = ArgumentMode::Options;
 
         for argument in arguments {
-            let flag = argument.to_str().and_then(Flag::parse);
+            let flag = if mode == ArgumentMode::LiteralPaths {
+                None
+            } else {
+                argument.to_str().and_then(Flag::parse)
+            };
+
+            if flag == Some(Flag::LiteralPaths) {
+                mode = ArgumentMode::LiteralPaths;
+                continue;
+            }
 
             if flag == Some(Flag::Trace) && command == CommandName::Check {
                 trace = TraceMode::Show;
                 continue;
             }
 
-            if argument.to_string_lossy().starts_with('-') {
-                return Err(
-                    Error::new(format!("unknown option {argument:?} for '{name}'"))
-                        .with_code(Code::Option)
-                        .with_help(if command == CommandName::Check {
-                            "the only check option is --trace"
-                        } else {
-                            "this command takes positional paths"
-                        }),
-                );
+            if mode == ArgumentMode::Options && argument.to_string_lossy().starts_with('-') {
+                return Err(Error::new(format!("unknown option {argument:?} for '{name}'"))
+                    .with_code(Code::Option)
+                    .with_help(if command == CommandName::Check {
+                        "the only check option is --trace; use -- before a filename beginning with '-'"
+                    } else {
+                        "this command takes positional paths; use -- before a filename beginning with '-'"
+                    }));
             }
 
             paths.push(PathBuf::from(argument));
