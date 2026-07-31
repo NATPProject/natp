@@ -32,6 +32,7 @@ impl Backend for Smt {
                     theorem.name, goal.name
                 ))
             })?;
+
             evidence.push_str(&format!(
                 "{}: {}\n{}\n",
                 goal.name, output.stdout, output.stderr

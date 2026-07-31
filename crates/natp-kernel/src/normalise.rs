@@ -167,6 +167,7 @@ pub(super) fn normalise(prop: &Prop) -> (Formula, Trace) {
         Prop::SeqEq(left, right) => {
             let (left_word, left_trace) = normalise_sequence(left, Orientation::Forward);
             let (right_word, right_trace) = normalise_sequence(right, Orientation::Forward);
+
             premises.extend([left_trace, right_trace]);
             let formula = if left_word == right_word {
                 Formula::Bool(true)
@@ -244,6 +245,7 @@ pub(super) fn normalise(prop: &Prop) -> (Formula, Trace) {
         Prop::All(x, predicate) => {
             let (sequence_word, normalisation_trace) = normalise_sequence(x, Orientation::Forward);
             let (predicate, predicate_trace) = normalise(predicate);
+
             premises.extend([normalisation_trace, predicate_trace]);
             let formula = match predicate {
                 Formula::Bool(true) => Formula::Bool(true),
@@ -270,6 +272,7 @@ pub(super) fn normalise(prop: &Prop) -> (Formula, Trace) {
         Prop::And(left, right) | Prop::Or(left, right) | Prop::Implies(left, right) => {
             let (left, left_trace) = normalise(left);
             let (right, right_trace) = normalise(right);
+
             premises.extend([left_trace, right_trace]);
             let formula = match prop {
                 Prop::And(..) => combine_formulae(vec![left, right], Connective::Conjunction),

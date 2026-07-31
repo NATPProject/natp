@@ -29,6 +29,7 @@ pub(super) fn write_obligation(
 pub fn write_obligations(theorem: &Theorem, path: impl AsRef<Path>) -> Result<(), Error> {
     let plan = induction(theorem)?;
     let path = path.as_ref();
+
     fs::create_dir(path).map_err(|error| {
         Error::from(error).context(format!("creating SMT export directory {}", path.display()))
     })?;

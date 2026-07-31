@@ -21,6 +21,7 @@ pub fn load_json<T: DeserializeOwned>(path: &Path, limit: usize) -> Result<T, Er
     let read = || -> Result<T, Error> {
         let file = File::open(path)?;
         let mut bytes = Vec::new();
+
         file.take((limit as u64).saturating_add(1))
             .read_to_end(&mut bytes)?;
 

@@ -197,6 +197,7 @@ impl LoweringContext<'_> {
 
         let variable = &binding.ident;
         let mut variables = self.variables.to_vec();
+
         variables.push(variable.clone());
 
         let predicate = LoweringContext {

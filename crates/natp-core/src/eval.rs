@@ -47,6 +47,7 @@ impl Evaluator<'_> {
             Expr::Append(left, right) => {
                 let mut left = self.evaluate_sequence(left)?;
                 let right = self.evaluate_sequence(right)?;
+
                 self.spend_fuel(right.len())?;
                 left.extend(right);
 

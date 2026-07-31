@@ -64,6 +64,7 @@ pub(super) fn normalise_sequence(
 
             let (mut left, first_trace) = normalise_sequence(first, orientation);
             let (right, second_trace) = normalise_sequence(second, orientation);
+
             left.extend(right);
 
             (

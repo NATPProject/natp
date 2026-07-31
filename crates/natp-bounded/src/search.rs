@@ -91,6 +91,7 @@ impl<'a> BoundedSearch<'a> {
         right: &Expr,
     ) -> Result<(), SearchStop> {
         self.budget.ensure_case()?;
+
         let left = symbolic::positions(left, inputs, self.budget.fuel())?;
         let right = symbolic::positions(right, inputs, self.budget.fuel())?;
 

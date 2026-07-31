@@ -30,6 +30,7 @@ pub(super) fn positions(
         Expr::Append(left, right) => {
             let mut left = positions(left, inputs, work)?;
             let right = positions(right, inputs, work)?;
+
             spend_work(work, right.len())?;
             left.extend(right);
 

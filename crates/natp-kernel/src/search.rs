@@ -11,6 +11,7 @@ use crate::{Atom, BooleanProof, Certificate, Formula, boolean, certificate, norm
 /// search returns `Ok(None)` and makes no claim about the theorem's truth.
 pub fn certify(theorem: &Theorem) -> Result<Option<Certificate>, Error> {
     certificate::validate(theorem)?;
+
     let (normal_form, normalisation_trace) = normalise::normalise(&theorem.claim);
     let atoms = boolean::atoms(&normal_form);
 
