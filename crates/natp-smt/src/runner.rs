@@ -58,7 +58,7 @@ impl Backend for Smt {
             theorem: theorem.clone(),
             method: Method::SmtInduction,
             outcome: Outcome::SmtValidated,
-            evidence: format!("external solver trusted; not a kernel-checked proof\n{evidence}"),
+            evidence,
             trace: None,
         })
     }

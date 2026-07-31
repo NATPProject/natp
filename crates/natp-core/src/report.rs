@@ -7,7 +7,7 @@ use crate::{Assignment, Error, ErrorKind, Scope, Theorem, Trace};
 /// A backend result, including its evidence category and quantification scope.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Outcome {
-    /// An unbounded theorem checked by the native trusted kernel only.
+    /// An unbounded theorem checked by the native kernel.
     Proven,
     /// Verification within a finite sequence-length bound.
     Verified {
@@ -108,12 +108,12 @@ impl Method {
     }
 }
 
-/// Evidence returned by a backend. Inspect the outcome before using a claim.
+/// A backend result and its evidence.
 ///
-/// Reports are descriptive, publicly constructible values, not authenticated
-/// proof tokens. Use the kernel certificate checker at an external trust boundary.
+/// Reports are publicly constructible. Check certificates with the kernel when
+/// accepting evidence from an external source.
 #[derive(Clone, Debug, PartialEq, Eq)]
-#[must_use = "inspect the outcome; bounded verification and SMT validation are not kernel proofs"]
+#[must_use = "inspect the report outcome"]
 pub struct Report {
     /// Exact theorem submitted to the backend.
     pub theorem: Theorem,
@@ -183,7 +183,7 @@ impl Report {
         self.is_proven() || self.is_verified() || self.is_smt_validated()
     }
 
-    /// Require native proof without panicking.
+    /// Require a native kernel proof.
     ///
     /// # Errors
     /// Returns [`ErrorKind::UnexpectedOutcome`] unless [`Self::is_proven`] holds.
@@ -191,7 +191,7 @@ impl Report {
         self.require(ReportRequirement::KernelProof)
     }
 
-    /// Require finite verification without panicking.
+    /// Require finite verification.
     ///
     /// # Errors
     /// Returns [`ErrorKind::UnexpectedOutcome`] unless [`Self::is_verified`] holds.
@@ -199,7 +199,7 @@ impl Report {
         self.require(ReportRequirement::BoundedVerification)
     }
 
-    /// Require SMT validation, returning an error for other outcomes.
+    /// Require SMT validation.
     ///
     /// # Errors
     /// Returns [`ErrorKind::UnexpectedOutcome`] unless [`Self::is_smt_validated`] holds.
@@ -255,7 +255,7 @@ impl fmt::Display for Report {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         let scope = match self.theorem.scope {
             Scope::Unbounded => "all finite lengths".to_owned(),
-            Scope::Bounded { max_len } => format!("each sequence length 0..={max_len} only"),
+            Scope::Bounded { max_len } => format!("each sequence length 0..={max_len}"),
         };
         write!(
             formatter,

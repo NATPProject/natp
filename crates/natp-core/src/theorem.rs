@@ -17,7 +17,7 @@ pub struct Theorem {
     pub name: String,
     /// Ordered quantifiers, addressed by zero-based variable IDs.
     pub variables: Vec<Domain>,
-    /// Quantification scope; successful finite checks never become kernel proofs.
+    /// Quantification scope.
     pub scope: Scope,
     /// Symbolic proposition to establish for every permitted assignment.
     pub claim: Prop,

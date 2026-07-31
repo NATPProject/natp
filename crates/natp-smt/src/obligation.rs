@@ -1,4 +1,4 @@
-//! Inspectable SMT query representation; construction does not establish proof.
+//! SMT query representation.
 
 /// An SMT query for a base case, induction step, or scalar-only claim.
 #[derive(Clone, Debug)]

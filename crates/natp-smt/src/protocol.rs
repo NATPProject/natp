@@ -1,4 +1,4 @@
-//! One fail-closed interpretation of solver output for acceptance and diagnostics.
+//! Interpret solver output for acceptance and diagnostics.
 
 use std::time::Duration;
 
@@ -67,11 +67,11 @@ impl Failure<'_> {
                 "solver timeout after {timeout:?}; increase Smt::timeout or simplify the obligation"
             ),
             Self::Exit(exit_code) => format!(
-                "solver exited unsuccessfully (exit code {exit_code:?}); inspect stderr in the report evidence"
+                "solver exited unsuccessfully (exit code {exit_code:?}); inspect the report evidence"
             ),
-            Self::Stderr => "solver wrote to stderr; inspect the evidence and resolve the diagnostic before trusting its answer".into(),
-            Self::Satisfiable => "solver returned sat for the negated obligation; induction did not establish the theorem (a satisfiable induction step is not a counterexample to the theorem)".into(),
-            Self::Unknown => "solver returned unknown; try a longer timeout or a simpler obligation; no result was established".into(),
+            Self::Stderr => "solver wrote to stderr; inspect the report evidence".into(),
+            Self::Satisfiable => "solver returned sat for the negated obligation; this is not a counterexample to the theorem".into(),
+            Self::Unknown => "solver returned unknown; try a longer timeout or a simpler obligation".into(),
             Self::MissingAnswer => "solver produced no answer; verify the executable accepts '-smt2 <file>'".into(),
             Self::UnexpectedAnswer(answer) => format!(
                 "expected exactly 'unsat', received {:?}; inspect the full solver evidence",

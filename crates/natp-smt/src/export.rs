@@ -21,7 +21,7 @@ pub(super) fn write_obligation(
     Ok(path)
 }
 
-/// Export to a new directory; this creates obligations without proving them.
+/// Write SMT queries to a new directory.
 ///
 /// # Errors
 /// Returns validation or filesystem errors, including an already-existing

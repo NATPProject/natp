@@ -43,7 +43,7 @@ impl Backend for Kernel {
                         boolean::MAX_ATOMS
                     ),
                 },
-                evidence: "no certificate; no bounded result was promoted".into(),
+                evidence: "no certificate found".into(),
                 trace: None,
             })
         }

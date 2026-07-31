@@ -19,9 +19,7 @@ impl Evaluator<'_> {
                 ),
             )
             .with_code(Code::EvaluationBudget)
-            .with_help(
-                "increase the evaluation fuel or simplify the claim; no logical conclusion was established",
-            )
+            .with_help("increase the evaluation fuel or simplify the claim")
         })?;
 
         Ok(())
@@ -137,7 +135,7 @@ impl Evaluator<'_> {
 }
 
 impl Theorem {
-    /// Concrete semantics. Fuel exhaustion is an error, never a logical result.
+    /// Evaluate concrete assignments within the work budget.
     ///
     /// # Errors
     /// Returns errors for malformed IR, incorrect assignments, exhausted fuel,

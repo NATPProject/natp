@@ -26,7 +26,6 @@ impl PackageName {
 }
 
 /// Translate a universally quantified DSL proposition into a typed symbolic closure.
-/// This constructs expressions; proof checking remains the backend's responsibility.
 #[proc_macro]
 pub fn claim(input: TokenStream) -> TokenStream {
     match expand(parse_macro_input!(input as ClaimInput)) {

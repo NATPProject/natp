@@ -102,10 +102,7 @@ pub(crate) fn execute_to(
         }
         Command::EmitSmt { theorem, directory } => {
             smt::write_obligations(&Theorem::load(theorem)?, directory)?;
-            writeln!(
-                output,
-                "Exported obligations. No proof or validation has been performed."
-            )?;
+            writeln!(output, "Exported SMT obligations.")?;
 
             Ok(CommandOutcome::Established)
         }

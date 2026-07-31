@@ -107,10 +107,7 @@ fn run_with_output_limits(command: &mut Command, timeout: Duration) -> Result<Ou
 }
 
 fn output_limit_error() -> Error {
-    Error::with_kind(
-        ErrorKind::ResourceLimit,
-        "backend output exceeded 1 MiB; refusing truncated evidence",
-    )
+    Error::with_kind(ErrorKind::ResourceLimit, "backend output exceeded 1 MiB")
 }
 
 fn read_output(file: &mut File) -> Result<String, Error> {

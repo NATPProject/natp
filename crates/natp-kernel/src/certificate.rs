@@ -82,10 +82,10 @@ pub fn check_detailed(theorem: &Theorem, certificate: &Certificate) -> Result<()
 
 fn check_evidence(theorem: &Theorem, certificate: &Certificate) -> Result<(), Error> {
     let rejected = |code, path, message| {
-        Error::new(message).with_code(code).at(path).with_help(
-            "regenerate the certificate for the exact expected theorem; \
-                 never edit evidence to force acceptance",
-        )
+        Error::new(message)
+            .with_code(code)
+            .at(path)
+            .with_help("regenerate the certificate for the expected theorem")
     };
 
     if certificate.theorem != *theorem {

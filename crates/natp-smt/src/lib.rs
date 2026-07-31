@@ -1,5 +1,5 @@
 //! SMT-LIB translation and structural induction obligations.
-//! Successful solver answers are SmtValidated, never native kernel Proven.
+//! Successful solver checks return `SmtValidated`.
 
 mod configuration;
 mod export;
