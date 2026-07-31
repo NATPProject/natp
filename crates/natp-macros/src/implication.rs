@@ -1,9 +1,10 @@
 //! Lower right-associative => before parsing ordinary Rust expressions.
 //! Groups and argument boundaries are respected; implication has lowest precedence.
 
-use crate::lower::Operation;
-use proc_macro2::{Group, TokenStream, TokenTree};
+use proc_macro2::{Group, Ident, TokenStream, TokenTree};
 use quote::quote;
+
+use crate::lower::Operation;
 
 pub(super) fn rewrite(tokens: TokenStream) -> TokenStream {
     let items: Vec<_> = tokens
@@ -51,8 +52,7 @@ fn rewrite_level(items: &[TokenTree]) -> TokenStream {
         let left: TokenStream = items[..index].iter().cloned().collect();
         let right = rewrite_level(&items[index + 2..]);
 
-        let operation =
-            proc_macro2::Ident::new(Operation::IMPLICATION_REWRITE, items[index].span());
+        let operation = Ident::new(Operation::IMPLICATION_REWRITE, items[index].span());
 
         return quote!(#operation(#left, #right));
     }

@@ -1,5 +1,7 @@
 //! Portable rule applications and deterministic tree rendering.
 
+use std::fmt::Write;
+
 use serde::{Deserialize, Serialize};
 
 /// A rule application and its premises.
@@ -20,7 +22,6 @@ impl Trace {
     /// Render the trace as an indented tree.
     pub fn render(&self) -> String {
         fn render_trace(trace: &Trace, depth: usize, output: &mut String) {
-            use std::fmt::Write;
             let _ = writeln!(
                 output,
                 "{}{}: {} -> {}",

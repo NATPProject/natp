@@ -1,8 +1,11 @@
+use std::ops;
+
 use natp_core::{NatExpr, Prop};
 
 /// A mathematical natural-number expression; addition never means wrapping arithmetic.
 #[derive(Clone, Debug)]
 pub struct Nat(NatExpr);
+
 impl Nat {
     pub(super) fn from_expression(expression: NatExpr) -> Self {
         Self(expression)
@@ -20,8 +23,9 @@ impl From<u64> for Nat {
     }
 }
 
-impl<R: Into<Nat>> std::ops::Add<R> for Nat {
+impl<R: Into<Nat>> ops::Add<R> for Nat {
     type Output = Self;
+
     fn add(self, rhs: R) -> Self {
         Self(NatExpr::Add(Box::new(self.0), Box::new(rhs.into().0)))
     }

@@ -1,7 +1,8 @@
 //! Validate bounded claims and produce verification reports.
 
-use crate::{Bounded, search::BoundedSearch, stop::SearchStop};
 use natp_core::{Backend, Error, Method, Outcome, Report, Scope, Theorem};
+
+use crate::{Bounded, search::BoundedSearch, stop::SearchStop};
 
 impl Backend for Bounded {
     fn prove(&self, theorem: &Theorem) -> Result<Report, Error> {

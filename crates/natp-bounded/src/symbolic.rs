@@ -1,7 +1,8 @@
 //! Check sequence equality, length, and emptiness without enumerating element values.
 
-use crate::{budget::spend_work, inputs::InputLayout, stop::SearchStop};
 use natp_core::{Expr, Prop};
+
+use crate::{budget::spend_work, inputs::InputLayout, stop::SearchStop};
 
 /// Interpret sequence terms as words of independent input positions.
 /// This establishes arbitrary-value validity only for unconditional equality.

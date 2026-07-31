@@ -1,5 +1,5 @@
 use natp_diagnostics::diagnostic;
-use syn::{Expr, ExprCall};
+use syn::{Error, Expr, ExprCall, Result};
 
 #[derive(Clone, Copy)]
 pub(crate) enum Operation {
@@ -77,10 +77,10 @@ impl<'a> DslCall<'a> {
         &self.arguments
     }
 
-    pub(super) fn parse(expression: &'a ExprCall) -> syn::Result<Self> {
+    pub(super) fn parse(expression: &'a ExprCall) -> Result<Self> {
         let name = operation_name(expression)?;
         let Some(operation) = Operation::named(&name) else {
-            return Err(syn::Error::new_spanned(
+            return Err(Error::new_spanned(
                 &expression.func,
                 diagnostic!(
                     UnknownOperation,
@@ -93,7 +93,7 @@ impl<'a> DslCall<'a> {
         let (arity, signature) = operation.signature();
 
         if expression.args.len() != arity {
-            return Err(syn::Error::new_spanned(
+            return Err(Error::new_spanned(
                 expression,
                 diagnostic!(
                     CallArity,
@@ -110,10 +110,10 @@ impl<'a> DslCall<'a> {
         })
     }
 
-    pub(super) fn expected_proposition(&self) -> syn::Error {
+    pub(super) fn expected_proposition(&self) -> Error {
         let (_, signature) = self.operation.signature();
 
-        syn::Error::new_spanned(
+        Error::new_spanned(
             self.expression,
             diagnostic!(
                 ExpectedProposition,
@@ -123,9 +123,9 @@ impl<'a> DslCall<'a> {
     }
 }
 
-fn operation_name(call: &ExprCall) -> syn::Result<String> {
+fn operation_name(call: &ExprCall) -> Result<String> {
     let Expr::Path(path) = call.func.as_ref() else {
-        return Err(syn::Error::new_spanned(
+        return Err(Error::new_spanned(
             &call.func,
             diagnostic!(
                 UnknownOperation,
@@ -138,7 +138,7 @@ fn operation_name(call: &ExprCall) -> syn::Result<String> {
         .get_ident()
         .map(ToString::to_string)
         .ok_or_else(|| {
-            syn::Error::new_spanned(
+            Error::new_spanned(
                 &path.path,
                 diagnostic!(
                     UnknownOperation,

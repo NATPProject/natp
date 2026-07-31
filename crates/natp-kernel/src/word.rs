@@ -1,8 +1,9 @@
 //! Canonical sequence words and orientation-preserving normalisation.
 
-use crate::trace::normalisation as trace;
 use natp_core::{Expr, Trace, TraceRule};
 use serde::{Deserialize, Serialize};
+
+use crate::trace::normalisation as trace;
 
 /// A sequence variable, possibly reversed, in a canonical concatenation word.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]

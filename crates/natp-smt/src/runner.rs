@@ -1,13 +1,16 @@
 //! Run SMT obligations and report solver evidence.
 
-use crate::{Smt, export::write_obligation, induction, protocol, vocabulary::SolverSetting};
-use natp_core::{Backend, Error, Method, Outcome, Report, Theorem, process};
 use std::process::Command;
+
+use natp_core::{Backend, Error, Method, Outcome, Report, Theorem, process};
+use tempfile::tempdir;
+
+use crate::{Smt, export::write_obligation, induction, protocol, vocabulary::SolverSetting};
 
 impl Backend for Smt {
     fn prove(&self, theorem: &Theorem) -> Result<Report, Error> {
         let goals = induction(theorem)?;
-        let temp = tempfile::tempdir().map_err(|error| {
+        let temp = tempdir().map_err(|error| {
             Error::from(error).context(format!(
                 "creating SMT working directory for theorem {:?}",
                 theorem.name

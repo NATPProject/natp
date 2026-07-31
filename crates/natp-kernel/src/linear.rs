@@ -1,9 +1,11 @@
 //! Sequence-length coefficient accumulation for validated natural expressions.
 
-use crate::Letter;
+use std::collections::BTreeMap;
+
 use natp_core::{Expr, NatExpr};
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+
+use crate::Letter;
 
 /// A natural constant plus nonnegative multiples of input sequence lengths.
 #[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]

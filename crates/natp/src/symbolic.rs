@@ -1,4 +1,5 @@
 use natp_core::{Domain, Element, Value};
+
 mod element;
 mod natural;
 mod sequence;
@@ -9,9 +10,11 @@ pub use sequence::{Seq, all, append, contains, is_empty, length, reverse};
 
 mod sealed {
     pub trait Element {}
+
     impl Element for i32 {}
 
     impl Element for bool {}
+
     pub trait Domain {}
 }
 

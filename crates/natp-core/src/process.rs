@@ -1,20 +1,21 @@
 //! Bounded external-process execution with file-backed output to avoid pipe stalls.
 //! Attempts to kill and reap the direct child on timeout or early failure.
 
-mod child;
-mod output;
-
-use child::RunningChild;
-pub use output::Output;
-
-use crate::{Error, ErrorKind, limits::ResourceLimit};
 use std::{
     fs::File,
-    io::{Read, Seek, SeekFrom},
+    io::{self, Read, Seek, SeekFrom},
     process::{Command, Stdio},
     thread,
     time::{Duration, Instant},
 };
+
+use child::RunningChild;
+use crate::{Error, ErrorKind, limits::ResourceLimit};
+
+mod child;
+mod output;
+
+pub use output::Output;
 
 const MAX_OUTPUT_BYTES: u64 = ResourceLimit::ProcessOutputBytes.value() as u64;
 
@@ -122,5 +123,5 @@ fn read_output(file: &mut File) -> Result<String, Error> {
     }
 
     String::from_utf8(bytes)
-        .map_err(|error| std::io::Error::new(std::io::ErrorKind::InvalidData, error).into())
+        .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error).into())
 }

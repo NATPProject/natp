@@ -1,8 +1,10 @@
 //! One length vector flattened into independent scalar input cells.
 
-use crate::input_variable::InputVariable;
+use std::{iter::repeat_n, ops::Range};
+
 use natp_core::{Assignment, Domain, Element, Value};
-use std::ops::Range;
+
+use crate::input_variable::InputVariable;
 
 /// Scalar variables occupy one cell; sequences occupy their selected lengths.
 pub(super) struct InputLayout {
@@ -18,7 +20,7 @@ impl InputLayout {
             .zip(lengths)
             .map(|(&domain, &length)| {
                 let start = elements.len();
-                elements.extend(std::iter::repeat_n(domain.element(), length));
+                elements.extend(repeat_n(domain.element(), length));
 
                 InputVariable::new(domain, start..elements.len())
             })

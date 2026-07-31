@@ -1,6 +1,8 @@
-use super::{Elem, Nat, SymbolicDomain, SymbolicElement, sealed};
-use natp_core::{Domain, ElemExpr, Expr, NatExpr, Prop};
 use std::marker::PhantomData;
+
+use natp_core::{Domain, ElemExpr, Expr, NatExpr, Prop};
+
+use super::{Elem, Nat, SymbolicDomain, SymbolicElement, sealed};
 
 /// A symbolic finite list parameterised by element sort `T`.
 /// Its operations build expressions; values are supplied during evaluation.
@@ -111,6 +113,7 @@ impl<T: SymbolicElement> sealed::Domain for Seq<T> {}
 
 impl<T: SymbolicElement> SymbolicDomain for Seq<T> {
     const DOMAIN: Domain = Domain::Sequence(T::ELEMENT);
+
     fn variable(id: usize) -> Self {
         Self::new(Expr::Var(id))
     }

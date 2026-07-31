@@ -1,8 +1,10 @@
 //! One fail-closed interpretation of solver output for acceptance and diagnostics.
 
-use crate::vocabulary::RuntimePolicy;
-use natp_core::process;
 use std::time::Duration;
+
+use natp_core::process;
+
+use crate::vocabulary::RuntimePolicy;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum SolverAnswer<'a> {
@@ -12,6 +14,7 @@ enum SolverAnswer<'a> {
     Missing,
     Unexpected(&'a str),
 }
+
 impl<'a> SolverAnswer<'a> {
     fn parse(text: &'a str) -> Self {
         match text.trim() {

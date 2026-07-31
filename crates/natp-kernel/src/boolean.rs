@@ -1,9 +1,11 @@
 //! Trusted propositional evaluation and deduction checking.
 
-use crate::normalise::{Atom, Formula};
-use natp_core::{Code, DiagnosticField, limits::ResourceLimit};
-use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
+
+use natp_core::{Code, DiagnosticField, Error, limits::ResourceLimit};
+use serde::{Deserialize, Serialize};
+
+use crate::normalise::{Atom, Formula};
 
 pub(super) const MAX_ATOMS: usize = ResourceLimit::KernelAtoms.value();
 
@@ -102,13 +104,13 @@ pub(super) fn diagnose(
     proof: &BooleanProof,
     values: &mut Vec<bool>,
     path: &str,
-) -> Result<(), natp_core::Error> {
+) -> Result<(), Error> {
     // `values` is always a prefix of the ordered atom table. Sequential splits
     // prevent repeated assumptions or skipped variables from hiding a branch.
     match proof {
         BooleanProof::True => match evaluate(formula, atoms, values) {
             Some(true) => Ok(()),
-            status => Err(natp_core::Error::new(format!(
+            status => Err(Error::new(format!(
                 "True leaf is unjustified: proposition is {} after {} atom assignments",
                 BooleanStatus::from_evaluation(status).as_str(),
                 values.len(),
@@ -125,7 +127,7 @@ pub(super) fn diagnose(
             on_true,
         } => {
             if *atom != values.len() || *atom >= atoms.len() {
-                return Err(natp_core::Error::new(format!(
+                return Err(Error::new(format!(
                     "invalid split atom {atom}; expected the next atom {} in a table of {}",
                     values.len(),
                     atoms.len(),

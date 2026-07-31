@@ -1,15 +1,17 @@
+use natp_core::{Backend, Error, ErrorKind, Method, Outcome, Report, Theorem, Trace, TraceRule};
+
 use crate::{boolean, certify, check, trace};
-use natp_core::{Backend, Error, Method, Outcome, Report, Theorem, Trace, TraceRule};
 
 /// Native backend: trusted normalisation followed by independent certificate checking.
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Kernel;
+
 impl Backend for Kernel {
     fn prove(&self, theorem: &Theorem) -> Result<Report, Error> {
         if let Some(certificate) = certify(theorem)? {
             if !check(theorem, &certificate)? {
                 return Err(Error::with_kind(
-                    natp_core::ErrorKind::Internal,
+                    ErrorKind::Internal,
                     "internal certificate check failed",
                 ));
             }

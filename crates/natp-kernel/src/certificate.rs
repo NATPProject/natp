@@ -1,10 +1,11 @@
 //! Certificate storage and the trusted acceptance boundary.
 
-use crate::{Atom, BooleanProof, Formula, boolean, normalise};
-use natp_core::{Code, DiagnosticField, limits::ResourceLimit};
-use natp_core::{Error, Scope, Theorem, Trace, storage};
-use serde::{Deserialize, Serialize};
 use std::path::Path;
+
+use natp_core::{Code, DiagnosticField, Error, Scope, Theorem, Trace, limits::ResourceLimit, storage};
+use serde::{Deserialize, Serialize};
+
+use crate::{Atom, BooleanProof, Formula, boolean, normalise};
 
 const MAX_CERTIFICATE_BYTES: usize = ResourceLimit::CertificateBytes.value();
 

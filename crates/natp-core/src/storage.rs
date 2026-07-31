@@ -1,12 +1,16 @@
 //! Bounded JSON input and atomic replacement of persisted evidence.
 
-use crate::{Error, ErrorKind};
-use serde::{Serialize, de::DeserializeOwned};
 use std::{
     fs::File,
     io::{Read, Write},
     path::Path,
 };
+
+use serde::{Serialize, de::DeserializeOwned};
+use serde_json::Deserializer;
+use tempfile::NamedTempFile;
+
+use crate::{Error, ErrorKind};
 
 /// Decode JSON within the byte limit, adding the file path to errors.
 ///
@@ -27,7 +31,7 @@ pub fn load_json<T: DeserializeOwned>(path: &Path, limit: usize) -> Result<T, Er
             ));
         }
 
-        let mut decoder = serde_json::Deserializer::from_slice(&bytes);
+        let mut decoder = Deserializer::from_slice(&bytes);
         let value = serde_path_to_error::deserialize(&mut decoder).map_err(|error| {
             let field = error.path().to_string();
             let cause = error.into_inner();
@@ -66,7 +70,7 @@ pub fn save_json<T: Serialize>(value: &T, path: &Path, limit: usize) -> Result<(
             _ => Path::new("."),
         };
 
-        let mut temporary = tempfile::NamedTempFile::new_in(parent)?;
+        let mut temporary = NamedTempFile::new_in(parent)?;
         temporary.write_all(&bytes)?;
         temporary.as_file().sync_all()?;
 

@@ -1,5 +1,6 @@
-use crate::vocabulary::{RuntimePolicy, SolverSetting};
 use std::{path::PathBuf, time::Duration};
+
+use crate::vocabulary::{RuntimePolicy, SolverSetting};
 
 /// Solver executable and per-obligation timeout.
 #[derive(Clone, Debug)]

@@ -1,5 +1,6 @@
-use crate::Code;
 use std::fmt;
+
+use crate::Code;
 
 /// A code, message, optional location, and help text.
 #[derive(Clone, Debug, PartialEq, Eq)]

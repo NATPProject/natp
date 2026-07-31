@@ -1,7 +1,8 @@
 //! Recursive list definitions instantiated from the typed solver vocabulary.
 
-use crate::vocabulary::{Binding, ListSymbol, Logic, Operator, SmtCommand, Sort};
 use natp_core::Element;
+
+use crate::vocabulary::{Binding, ListSymbol, Logic, Operator, SmtCommand, Sort};
 
 pub(super) fn generate() -> String {
     let mut prelude = String::new();

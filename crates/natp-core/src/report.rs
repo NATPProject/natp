@@ -1,6 +1,8 @@
-use crate::{Assignment, Error, ErrorKind, Scope, Theorem, Trace};
-use serde::{Deserialize, Serialize};
 use std::fmt;
+
+use serde::{Deserialize, Serialize};
+
+use crate::{Assignment, Error, ErrorKind, Scope, Theorem, Trace};
 
 /// A backend result, including its evidence category and quantification scope.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

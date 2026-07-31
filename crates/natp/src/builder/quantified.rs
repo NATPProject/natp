@@ -1,6 +1,9 @@
+use std::marker::PhantomData;
+
+use natp_core::limits::SCHEMA_VERSION;
+
 use super::Claim;
 use crate::{Domain, Prop, Scope, SymbolicDomain, Theorem};
-use std::marker::PhantomData;
 
 /// Quantifier types in declaration order, together with their common scope.
 #[derive(Clone, Debug)]
@@ -58,7 +61,7 @@ impl<Q> Quantified<Q> {
 
     fn finish(self, claim: Prop) -> Claim {
         Claim::new(Theorem {
-            schema_version: natp_core::limits::SCHEMA_VERSION,
+            schema_version: SCHEMA_VERSION,
             name: self.name,
             variables: self.variables,
             scope: self.scope,

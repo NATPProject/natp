@@ -1,8 +1,9 @@
 //! Generate base, step, and scalar obligations.
 
+use natp_core::{Domain, Error, Scope, Theorem};
+
 use crate::vocabulary::{Binding, ListSymbol, ObligationKind, Operator, SmtCommand, Sort};
 use crate::{Induction, Obligation, prelude, translate::Translator};
-use natp_core::{Domain, Error, Scope, Theorem};
 
 /// Choose the first sequence for induction, or a direct query for scalar-only claims.
 ///

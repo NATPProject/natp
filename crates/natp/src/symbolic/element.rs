@@ -1,6 +1,8 @@
-use super::{SymbolicDomain, SymbolicElement, sealed};
-use natp_core::{Domain, ElemExpr, Prop};
 use std::marker::PhantomData;
+
+use natp_core::{Domain, ElemExpr, Prop};
+
+use super::{SymbolicDomain, SymbolicElement, sealed};
 
 /// A typed symbolic scalar, either quantified, literal, or bound by `all`.
 #[derive(Debug)]
@@ -51,6 +53,7 @@ impl<T: SymbolicElement> sealed::Domain for Elem<T> {}
 
 impl<T: SymbolicElement> SymbolicDomain for Elem<T> {
     const DOMAIN: Domain = Domain::Scalar(T::ELEMENT);
+
     fn variable(id: usize) -> Self {
         Self::new(ElemExpr::Var(id))
     }

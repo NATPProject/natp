@@ -1,5 +1,7 @@
 //! Public wire representation. Construction is permissive; backends validate it.
 
+use std::{fmt, ops::Not};
+
 use serde::{Deserialize, Serialize};
 
 /// An equality-only element sort supported by every backend.
@@ -25,8 +27,8 @@ impl Element {
     }
 }
 
-impl std::fmt::Display for Element {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Display for Element {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str(self.as_str())
     }
 }
@@ -110,8 +112,8 @@ impl Domain {
     }
 }
 
-impl std::fmt::Display for Domain {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Display for Domain {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Sequence(element) => write!(formatter, "Seq<{element}>"),
             Self::Scalar(element) => write!(formatter, "Elem<{element}>"),
@@ -236,8 +238,9 @@ impl From<bool> for Prop {
     }
 }
 
-impl std::ops::Not for Prop {
+impl Not for Prop {
     type Output = Self;
+
     fn not(self) -> Self {
         Self::Not(Box::new(self))
     }

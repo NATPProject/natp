@@ -1,6 +1,6 @@
-use natp::Code;
-use natp::Error;
-use std::{ffi::OsString, path::PathBuf};
+use std::{convert::identity, ffi::OsString, path::PathBuf};
+
+use natp::{Code, Error};
 
 pub(crate) const HELP: &str = "\
 Rust-native theorem system
@@ -303,8 +303,5 @@ fn edit_distance(left: &str, right: &str) -> usize {
         previous = current;
     }
 
-    previous
-        .last()
-        .copied()
-        .map_or(left.len(), std::convert::identity)
+    previous.last().copied().map_or(left.len(), identity)
 }

@@ -1,7 +1,7 @@
 use crate::{
-    Assignment, Domain, ElemExpr, Error, ErrorKind, Expr, NatExpr, Prop, Scope, Theorem, Value,
+    Assignment, Code, DiagnosticField, Domain, ElemExpr, Error, ErrorKind, Expr, NatExpr, Prop,
+    Scope, Theorem, Value,
 };
-use crate::{Code, DiagnosticField};
 
 struct Evaluator<'left> {
     values: &'left [Assignment],

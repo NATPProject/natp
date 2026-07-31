@@ -1,7 +1,8 @@
 //! SMT symbol spellings and solver policy.
 
-use natp_core::{Domain, Element};
 use std::time::Duration;
+
+use natp_core::{Domain, Element};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum Sort {
@@ -10,6 +11,7 @@ pub(super) enum Sort {
     BitVector32,
     List(Element),
 }
+
 impl Sort {
     pub(super) fn element(element: Element) -> Self {
         match element {
@@ -53,6 +55,7 @@ pub(super) enum Operator {
     ForAll,
     IfThenElse,
 }
+
 impl Operator {
     pub(super) fn token(self) -> &'static str {
         match self {
@@ -81,6 +84,7 @@ pub(super) enum SmtCommand {
     Assert,
     CheckSat,
 }
+
 impl SmtCommand {
     pub(super) fn token(self) -> &'static str {
         match self {
@@ -101,10 +105,12 @@ impl SmtCommand {
         }
     }
 }
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum Logic {
     All,
 }
+
 impl Logic {
     pub(super) fn token(self) -> &'static str {
         match self {
@@ -124,6 +130,7 @@ pub(super) enum ListSymbol {
     Length,
     Membership,
 }
+
 impl ListSymbol {
     pub(super) fn render(self, element: Element) -> String {
         let name = match self {
@@ -159,6 +166,7 @@ pub(super) enum Binding {
     ListRight,
     Member,
 }
+
 impl Binding {
     pub(super) fn render(self) -> String {
         match self {
@@ -179,6 +187,7 @@ pub(super) enum ObligationKind {
     Step,
     Direct,
 }
+
 impl ObligationKind {
     pub(super) fn name(self) -> &'static str {
         match self {
@@ -194,6 +203,7 @@ pub(super) enum SolverSetting {
     Executable,
     SmtInputFlag,
 }
+
 impl SolverSetting {
     pub(super) fn text(self) -> &'static str {
         match self {
@@ -202,12 +212,14 @@ impl SolverSetting {
         }
     }
 }
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum RuntimePolicy {
     TimeoutSeconds,
     ElementBits,
     DiagnosticCharacters,
 }
+
 impl RuntimePolicy {
     pub(super) fn number(self) -> usize {
         match self {
@@ -227,6 +239,7 @@ pub(super) enum OutputFile {
     Obligation,
     Theorem,
 }
+
 impl OutputFile {
     pub(super) fn name(self, role: &str) -> String {
         match self {

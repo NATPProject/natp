@@ -1,11 +1,14 @@
 //! Canonical propositions derived from validated theorem expressions.
 
+use std::{cmp, mem};
+
+use natp_core::{ElemExpr, Prop, Trace, TraceRule};
+use serde::{Deserialize, Serialize};
+
 use crate::linear::normalise_length;
 use crate::trace::normalisation as trace;
 use crate::word::{Orientation, normalise_sequence, reverse_word};
 use crate::{Letter, Linear};
-use natp_core::{ElemExpr, Prop, Trace, TraceRule};
-use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 /// An opaque proposition after trusted finite-list normalisation.
@@ -150,7 +153,7 @@ fn compare_lengths(mut left: Linear, mut right: Linear) -> Formula {
     }
 
     if right < left {
-        std::mem::swap(&mut left, &mut right);
+        mem::swap(&mut left, &mut right);
     }
 
     Formula::Atom(Atom::LengthEqual(left, right))
@@ -178,8 +181,7 @@ pub(super) fn normalise(prop: &Prop) -> (Formula, Trace) {
                     (reverse_word(&left_word), reverse_word(&right_word)),
                     (reverse_word(&right_word), reverse_word(&left_word)),
                 ];
-                let (canonical_left, canonical_right) =
-                    pairs.into_iter().fold(first, std::cmp::min);
+                let (canonical_left, canonical_right) = pairs.into_iter().fold(first, cmp::min);
                 let equality = Formula::Atom(Atom::SequenceEqual(canonical_left, canonical_right));
                 // Equality entails equal lengths; conjoining this consequence is
                 // equivalence preserving and enables elementary congruence proofs.

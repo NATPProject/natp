@@ -1,12 +1,15 @@
 //! Stable trace adapters for canonical normalisation and Boolean deductions.
 
-use crate::{BooleanProof, boolean};
+use std::fmt::Debug;
+
 use natp_core::{Trace, TraceRule};
+
+use crate::{BooleanProof, boolean};
 
 pub(super) fn normalisation(
     rule: TraceRule,
-    before: impl std::fmt::Debug,
-    after: impl std::fmt::Debug,
+    before: impl Debug,
+    after: impl Debug,
     premises: Vec<Trace>,
 ) -> Trace {
     Trace {

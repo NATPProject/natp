@@ -1,9 +1,10 @@
-use crate::implication;
 use natp_diagnostics::diagnostic;
 use syn::{
-    Expr, Ident, Token,
+    Error, Expr, Ident, Result, Token, parse2,
     parse::{Parse, ParseStream},
 };
+
+use crate::implication;
 
 // Mirrors the IR's quantifier limit without coupling this proc macro to a backend.
 enum MacroLimit {
@@ -24,7 +25,7 @@ pub(super) struct ClaimInput {
 }
 
 impl Parse for ClaimInput {
-    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+    fn parse(input: ParseStream<'_>) -> Result<Self> {
         input.parse::<Token![|]>().map_err(|_| {
             input.error(diagnostic!(
                 QuantifierSyntax,
@@ -42,17 +43,14 @@ impl Parse for ClaimInput {
             })?;
 
             if let Some(previous) = variables.iter().find(|previous| **previous == variable) {
-                let mut error = syn::Error::new_spanned(
+                let mut error = Error::new_spanned(
                     &variable,
                     diagnostic!(
                         DuplicateQuantifier,
                         "duplicate quantified variable '{variable}'; give each quantifier a distinct name",
                     ),
                 );
-                error.combine(syn::Error::new_spanned(
-                    previous,
-                    "first declaration is here",
-                ));
+                error.combine(Error::new_spanned(previous, "first declaration is here"));
 
                 return Err(error);
             }
@@ -81,8 +79,8 @@ impl Parse for ClaimInput {
             )));
         }
 
-        let body = syn::parse2(implication::rewrite(input.parse()?)).map_err(|error| {
-            syn::Error::new(
+        let body = parse2(implication::rewrite(input.parse()?)).map_err(|error| {
+            Error::new(
                 error.span(),
                 diagnostic!(
                     ClaimSyntax,

@@ -1,7 +1,8 @@
 //! Representatives of the equality classes left unnamed by a proposition.
 
+use std::{collections::BTreeSet, iter};
+
 use natp_core::{ElemExpr, Element, Prop, Value};
-use std::collections::BTreeSet;
 
 /// Literal values are fixed; fresh values stand for distinct unnamed classes.
 pub(super) struct EqualityPatterns {
@@ -37,7 +38,7 @@ impl EqualityPatterns {
         // refutation. Avoid allocating a candidate list at every tree node.
         let mut index = 0;
 
-        std::iter::from_fn(move || {
+        iter::from_fn(move || {
             let candidate = match element {
                 Element::Bool if index < 2 => Some((Value::Bool(index == 1), used)),
                 Element::Bool => None,

@@ -1,18 +1,22 @@
 mod call;
 
-use call::DslCall;
-pub(super) use call::Operation;
 use natp_diagnostics::diagnostic;
 use proc_macro2::TokenStream as Tokens;
 use quote::{quote, quote_spanned};
-use syn::spanned::Spanned;
-use syn::{BinOp, Expr, ExprBinary, ExprCall, Ident, Lit, Pat, Stmt, UnOp};
+use syn::{
+    BinOp, Error, Expr, ExprBinary, ExprCall, Ident, Lit, Pat, Result, ReturnType, Stmt, UnOp,
+    spanned::Spanned,
+};
+
+use call::DslCall;
+
+pub(super) use call::Operation;
 
 pub(super) fn lower_proposition(
     root: &Tokens,
     variables: &[Ident],
     expression: &Expr,
-) -> syn::Result<Tokens> {
+) -> Result<Tokens> {
     LoweringContext {
         root,
         variables,
@@ -34,7 +38,7 @@ enum PredicateContext {
 }
 
 impl LoweringContext<'_> {
-    fn lower_proposition(&self, expression: &Expr) -> syn::Result<Tokens> {
+    fn lower_proposition(&self, expression: &Expr) -> Result<Tokens> {
         let expression = ungroup_expression(expression)?;
         let root = self.root;
 
@@ -53,7 +57,7 @@ impl LoweringContext<'_> {
         }
     }
 
-    fn lower_binary(&self, binary: &ExprBinary) -> syn::Result<Tokens> {
+    fn lower_binary(&self, binary: &ExprBinary) -> Result<Tokens> {
         match binary.op {
             BinOp::Eq(_) | BinOp::Ne(_) => self.lower_equality(binary),
             BinOp::And(_) | BinOp::Or(_) => {
@@ -66,7 +70,7 @@ impl LoweringContext<'_> {
                     Ok(quote!((#left).or(#right)))
                 }
             }
-            _ => Err(syn::Error::new_spanned(
+            _ => Err(Error::new_spanned(
                 binary.op,
                 diagnostic!(
                     UnsupportedOperator,
@@ -77,7 +81,7 @@ impl LoweringContext<'_> {
         }
     }
 
-    fn lower_equality(&self, binary: &ExprBinary) -> syn::Result<Tokens> {
+    fn lower_equality(&self, binary: &ExprBinary) -> Result<Tokens> {
         let root = self.root;
         let (left, right) = if is_literal(&binary.left) && !is_literal(&binary.right) {
             (&binary.right, &binary.left)
@@ -101,11 +105,11 @@ impl LoweringContext<'_> {
         }
     }
 
-    fn lower_predicate_call(&self, call: &ExprCall) -> syn::Result<Tokens> {
+    fn lower_predicate_call(&self, call: &ExprCall) -> Result<Tokens> {
         self.lower_predicate(&DslCall::parse(call)?)
     }
 
-    fn lower_predicate(&self, call: &DslCall<'_>) -> syn::Result<Tokens> {
+    fn lower_predicate(&self, call: &DslCall<'_>) -> Result<Tokens> {
         match (call.operation(), call.arguments()) {
             (Operation::Implies, [left, right]) => {
                 let left = self.lower_proposition(left)?;
@@ -129,9 +133,9 @@ impl LoweringContext<'_> {
         }
     }
 
-    fn all(&self, sequence: &Expr, predicate: &Expr) -> syn::Result<Tokens> {
+    fn all(&self, sequence: &Expr, predicate: &Expr) -> Result<Tokens> {
         if self.predicate_context == PredicateContext::Element {
-            return Err(syn::Error::new_spanned(
+            return Err(Error::new_spanned(
                 predicate,
                 diagnostic!(
                     NestedAll,
@@ -142,7 +146,7 @@ impl LoweringContext<'_> {
 
         let sequence = self.lower_term(sequence)?;
         let Expr::Closure(closure) = predicate else {
-            return Err(syn::Error::new_spanned(
+            return Err(Error::new_spanned(
                 predicate,
                 diagnostic!(
                     AllClosure,
@@ -154,9 +158,9 @@ impl LoweringContext<'_> {
         if closure.inputs.len() != 1
             || closure.asyncness.is_some()
             || closure.constness.is_some()
-            || !matches!(closure.output, syn::ReturnType::Default)
+            || !matches!(closure.output, ReturnType::Default)
         {
-            return Err(syn::Error::new_spanned(
+            return Err(Error::new_spanned(
                 closure,
                 diagnostic!(
                     AllClosure,
@@ -167,7 +171,7 @@ impl LoweringContext<'_> {
         }
 
         let Pat::Ident(binding) = &closure.inputs[0] else {
-            return Err(syn::Error::new_spanned(
+            return Err(Error::new_spanned(
                 &closure.inputs,
                 diagnostic!(
                     AllClosure,
@@ -181,7 +185,7 @@ impl LoweringContext<'_> {
             || binding.subpat.is_some()
             || self.variables.contains(&binding.ident)
         {
-            return Err(syn::Error::new_spanned(
+            return Err(Error::new_spanned(
                 binding,
                 diagnostic!(
                     ShadowedBinder,
@@ -210,7 +214,7 @@ impl LoweringContext<'_> {
         })
     }
 
-    fn lower_term(&self, expression: &Expr) -> syn::Result<Tokens> {
+    fn lower_term(&self, expression: &Expr) -> Result<Tokens> {
         let expression = ungroup_expression(expression)?;
         let root = self.root;
 
@@ -229,7 +233,7 @@ impl LoweringContext<'_> {
                     .collect::<Vec<_>>()
                     .join(", ");
 
-                Err(syn::Error::new_spanned(
+                Err(Error::new_spanned(
                     path,
                     diagnostic!(
                         UnknownSymbol,
@@ -260,7 +264,7 @@ impl LoweringContext<'_> {
         }
     }
 
-    fn lower_term_call(&self, call: &ExprCall) -> syn::Result<Tokens> {
+    fn lower_term_call(&self, call: &ExprCall) -> Result<Tokens> {
         let root = self.root;
         let call = DslCall::parse(call)?;
 
@@ -287,12 +291,12 @@ impl LoweringContext<'_> {
     }
 }
 
-fn ungroup_expression(expression: &Expr) -> syn::Result<&Expr> {
+fn ungroup_expression(expression: &Expr) -> Result<&Expr> {
     match expression {
         Expr::Paren(parentheses) => ungroup_expression(&parentheses.expr),
         Expr::Block(block) if block.block.stmts.len() == 1 => match &block.block.stmts[0] {
             Stmt::Expr(expression, None) => ungroup_expression(expression),
-            _ => Err(syn::Error::new_spanned(
+            _ => Err(Error::new_spanned(
                 expression,
                 diagnostic!(
                     ClaimBlock,
@@ -301,7 +305,7 @@ fn ungroup_expression(expression: &Expr) -> syn::Result<&Expr> {
                 ),
             )),
         },
-        Expr::Block(_) => Err(syn::Error::new_spanned(
+        Expr::Block(_) => Err(Error::new_spanned(
             expression,
             diagnostic!(
                 ClaimBlock,
@@ -317,7 +321,7 @@ fn is_literal(expression: &Expr) -> bool {
         || matches!(expression, Expr::Unary(unary) if matches!(unary.op, UnOp::Neg(_)))
 }
 
-fn unsupported_expression(expression: &Expr) -> syn::Error {
+fn unsupported_expression(expression: &Expr) -> Error {
     let help = match expression {
         Expr::Index(_) => {
             "indexing is not in this language; use contains, all, or sequence equality"
@@ -336,7 +340,7 @@ fn unsupported_expression(expression: &Expr) -> syn::Error {
         }
     };
 
-    syn::Error::new_spanned(
+    Error::new_spanned(
         expression,
         diagnostic!(
             UnsupportedExpression,

@@ -6,6 +6,7 @@ pub(super) enum ResourcePolicy {
     Work,
     PatternCells,
 }
+
 impl ResourcePolicy {
     pub(super) const fn limit(self) -> usize {
         match self {
@@ -22,6 +23,7 @@ pub(super) enum Exhaustion {
     PatternCells,
     Evaluation(String),
 }
+
 impl Exhaustion {
     pub(super) fn reason(self) -> String {
         match self {

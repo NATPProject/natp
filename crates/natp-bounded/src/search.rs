@@ -1,11 +1,12 @@
 //! Enumerate sequence lengths and equality patterns within the work and case budgets.
 
+use natp_core::{Assignment, Domain, Error, ErrorKind, Expr, Prop, Theorem, Value};
+
 use crate::policy::{Exhaustion, ResourcePolicy};
 use crate::{
     Bounded, budget::SearchBudget, inputs::InputLayout, patterns::EqualityPatterns,
     stop::SearchStop, symbolic,
 };
-use natp_core::{Assignment, Domain, Error, ErrorKind, Expr, Prop, Theorem, Value};
 
 pub(super) struct BoundedSearch<'a> {
     theorem: &'a Theorem,

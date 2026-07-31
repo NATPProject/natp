@@ -1,7 +1,8 @@
 //! Untrusted proof search. Its output must pass `certificate::check`.
 
-use crate::{Atom, BooleanProof, Certificate, Formula, boolean, certificate, normalise};
 use natp_core::{Error, Theorem};
+
+use crate::{Atom, BooleanProof, Certificate, Formula, boolean, certificate, normalise};
 
 /// Propose a certificate for an unbounded theorem, or report an incomplete search.
 ///

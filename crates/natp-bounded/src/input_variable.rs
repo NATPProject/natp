@@ -1,7 +1,8 @@
 //! One quantified variable's domain and contiguous input-cell slice.
 
-use natp_core::{Assignment, Domain, Value};
 use std::ops::Range;
+
+use natp_core::{Assignment, Domain, Value};
 
 pub(super) struct InputVariable {
     domain: Domain,

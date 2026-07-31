@@ -1,8 +1,10 @@
 //! Portable theorem representation and validated persistence.
 
-use crate::{Domain, Error, Prop, Scope, limits, storage};
-use serde::{Deserialize, Serialize};
 use std::path::Path;
+
+use serde::{Deserialize, Serialize};
+
+use crate::{Domain, Error, Prop, Scope, limits, storage};
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
