@@ -10,7 +10,6 @@
 **/tests/
 **/benches/
 **/examples/
-CONTRIBUTING.md
 __pycache__/
 *.pyc
 .DS_Store
